@@ -1,0 +1,8 @@
+{
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "postgresql-42.6.0.jar"
+    ],
+    "java.project.explorer.showNonJavaResources": false
+}
