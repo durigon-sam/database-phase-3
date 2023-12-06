@@ -180,26 +180,255 @@ public class ArborDB{
 
     //TODO: Implement runAddTreeSpecies()
     static void runAddTreeSpecies(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "INSERT INTO arbor_db.TREE_SPECIES (genus, epithet, ideal_temperature, largest_height, raunkiaer_life_form) " +
+            "VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter genus (varchar(30)): ");
+                preparedStatement.setString(1, scanner.next());
+
+                System.out.print("Enter epithet (varchar(30)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                System.out.print("Enter ideal_temperature (real): ");
+                preparedStatement.setFloat(3, scanner.nextFloat());
+
+                System.out.print("Enter largest_height (real): ");
+                preparedStatement.setFloat(4, scanner.nextFloat());
+
+                System.out.print("Enter raunkiaer_life_form (varchar(16)): ");
+                preparedStatement.setString(5, scanner.next());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
     //TODO: Implement runAddSpeciesToForest()
     static void runAddSpeciesToForest(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "INSERT INTO arbor_db.FOUND_IN (forest_no, genus, epithet) " +
+            "VALUES (?, ?, ?)";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter forest_no (integer): ");
+                preparedStatement.setInt(1, scanner.nextInt());
+
+                System.out.print("Enter genus (varchar(30)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                System.out.print("Enter epithet (varchar(30)): ");
+                preparedStatement.setString(3, scanner.next());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
     //TODO: Implement runNewWorker()
     static void runNewWorker(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql1 = "INSERT INTO arbor_db.WORKER (ssn, first, last, middle, rank) " +
+            "VALUES (?, ?, ?, ?, ?)";
+
+            String sql2 = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
+            "VALUES (?, ?)";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql1)) {
+                // prompt user for the args
+                System.out.print("Enter ssn (char(9)): ");
+                // store ssn to be used later as well
+                String ssn = scanner.next();
+                preparedStatement.setString(1, ssn);
+
+                System.out.print("Enter first name (varchar(30)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                System.out.print("Enter last name (varchar(30)): ");
+                preparedStatement.setString(3, scanner.next());
+
+                System.out.print("Enter middle initial (char(1)): ");
+                preparedStatement.setString(4, scanner.next());
+
+                System.out.print("Enter rank (varchar(10)): ");
+                preparedStatement.setString(5, scanner.next());
+
+                // run first sql statement
+                int rowsAffected = preparedStatement.executeUpdate();
+                int rowsAffected2 = 0;
+
+                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
+
+                    // get the state abbr from user
+                    System.out.print("Enter state abbreviation (char(2)): ");
+                    preparedStatement2.setString(1, scanner.next());
+
+                    // set ssn as second arg in statement
+                    preparedStatement2.setString(2, ssn);
+
+                    // run second sql statement
+                    rowsAffected2 = preparedStatement2.executeUpdate();
+                }
+
+                if (rowsAffected > 0 && rowsAffected2 > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
     //TODO: Implement runEmployWorkerToState()
     static void runEmployWorkerToState(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
+            "VALUES (?, ?)";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter state abbreviation (char(2)): ");
+                preparedStatement.setString(1, scanner.next());
+
+                System.out.print("Enter ssn (char(9)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
     //TODO: Implement runPlaceSensor()
     static void runPlaceSensor(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "INSERT INTO arbor_db.SENSOR (sensor_id, last_charged, energy, last_read, x, y, maintainer_id) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter energy (integer): ");
+                preparedStatement.setInt(3, scanner.nextInt());
+
+                System.out.print("Enter x of location of deployment (real): ");
+                preparedStatement.setFloat(5, scanner.nextFloat());
+
+                System.out.print("Enter y of location of deployment (real): ");
+                preparedStatement.setFloat(6, scanner.nextFloat());
+
+                System.out.print("Enter maintainer id (char(9)): ");
+                preparedStatement.setString(7, scanner.next());
+
+                // TODO: calculate last_read and last_charged
+                // use current time from clock relation 
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
