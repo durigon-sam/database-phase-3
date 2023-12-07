@@ -21,13 +21,13 @@ public class ArborDB{
         }
 
         if (connected){
-                        System.out.println("Already connected to a database.");
-                        try {
-                            System.out.println("Press Enter to Continue");
-                            System.in.read();
-                        } catch (Exception e) {
+            System.out.println("Already connected to a database.");
+            try {
+                System.out.println("Press Enter to Continue");
+                System.in.read();
+            } catch (Exception e) {
 
-                        }
+            }
         } else connect();
 
         System.out.println("\n**********Welcome to the ArborDB menu**********. \n\n Please choose from the provided list of methods:");
@@ -806,8 +806,69 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runThreeDegrees()
+    //DONE: Implement runThreeDegrees()
     static void runThreeDegrees(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+
+        clearScreen(20);
+
+        try {
+            // Set up the statement using user input
+            int firstForest = 0;
+            int secondForest = 0;
+            try {
+                System.out.println("Please input the forest_no of the starting forest.");
+                firstForest = scanner.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("Expected an integer, please try again.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+
+            try {
+                System.out.println("Please input the forest_no of the second forest.");
+                secondForest = scanner.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("Expected an integer, please try again.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            
+            // prepare the statement to be executed
+            CallableStatement preparedStatement = conn.prepareCall("SELECT * FROM threeDegrees( ?, ? )");
+            preparedStatement.setInt(1, firstForest);
+            preparedStatement.setInt(2, secondForest);
+            boolean hasResults = preparedStatement.execute();
+            if (hasResults){
+                ResultSet resultSet = preparedStatement.getResultSet();
+                resultSet.next();
+                String hops = resultSet.getString("threedegrees");
+
+                // Handle the case where no hops were found
+                if (hops != null){
+                    System.out.println("The following hops were found!\n" + hops);
+                }else{
+                    System.out.format("No hops were found from %d to %d", firstForest, secondForest);
+                }
+            }
+        // Catch any SQL errors and display the error logs
+        } catch (SQLException err) {
+            System.out.println("SQL Error");
+            while (err != null) {
+                System.out.println("Message = " + err.getMessage());
+                System.out.println("SQLState = " + err.getSQLState());
+                System.out.println("SQL Code = " + err.getErrorCode());
+                err = err.getNextException();
+            }
+        }
         return;
     }
 
@@ -833,7 +894,7 @@ public class ArborDB{
         System.out.println("| 6 | employWorkerToState    | 13 | removeSensor            | 20 | threeDegrees          |");
         System.out.println("| 7 | placeSensor            | 14 | listSensors             | 21 | Exit                  |");
         System.out.println("+---+------------------------+------------------------------+----------------------------+");
-        System.out.println("Please enter your selection: \n");
+        System.out.println("\nPlease enter your selection: \n");
     }
 
     public static void clearScreen(int n) {
