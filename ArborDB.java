@@ -311,29 +311,36 @@ public class ArborDB{
         }
 
         try {
-
-            // Call the PostgreSQL function using CallableStatement
+            
             String sql = "SELECT * FROM listSensors(?)";
-            try (PreparedStatement callableStatement = conn.prepareCall(sql)) {
+            try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
+                clearScreen(20);
+                System.out.println("Retrieve list of sensors");
                 System.out.print("Enter forest_no: ");
-                callableStatement.setInt(1, scanner.nextInt());
+                preparedStatement.setInt(1, scanner.nextInt());
 
                 System.out.println();
                 // Execute the query
-                boolean hasResults = callableStatement.execute();
+                boolean hasResults = preparedStatement.execute();
 
                 // Process the results if any
                 if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        ResultSetMetaData metaData = resultSet.getMetaData();
-                        int columnCount = metaData.getColumnCount(); // was used for an older version. 
+                    try (ResultSet resultSet = preparedStatement.getResultSet()) {
+                        if (resultSet.next()) {
 
-                        System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
-                        System.out.println();
-                        while (resultSet.next()) {
- 
-                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+                            int columnCount = metaData.getColumnCount(); // was used for an older version. 
+    
+                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
                             System.out.println();
+                            while (resultSet.next()) {
+     
+                                System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                        }
+                        else {
+                            System.out.println("[ERROR] Empty or invalid forest_no.");
                         }
                     }
                 }
@@ -400,4 +407,9 @@ public class ArborDB{
         System.out.println("Please enter your selection: \n");
     }
 
+    public static void clearScreen(int n) {
+        for (int i = 0; i < n; i++){
+            System.out.println();
+        }
+    }
 }
