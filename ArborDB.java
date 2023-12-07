@@ -178,7 +178,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runAddTreeSpecies()
     static void runAddTreeSpecies(){
         // check if connected first
         if (!connected) {
@@ -228,7 +227,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runAddSpeciesToForest()
     static void runAddSpeciesToForest(){
         // check if connected first
         if (!connected) {
@@ -272,7 +270,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runNewWorker()
     static void runNewWorker(){
         // check if connected first
         if (!connected) {
@@ -341,7 +338,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runEmployWorkerToState()
     static void runEmployWorkerToState(){
         // check if connected first
         if (!connected) {
@@ -437,28 +433,242 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runRemoveSpeciesFromForest()
     static void runRemoveSpeciesFromForest(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "DELETE FROM arbor_db.FOUND_IN WHERE forest_no = ? AND genus = ? AND epithet = ?";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter forest_no (integer): ");
+                preparedStatement.setInt(1, scanner.nextInt());
+
+                System.out.print("Enter genus (varchar(30)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                System.out.print("Enter epithet (varchar(30)): ");
+                preparedStatement.setString(3, scanner.next());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after removing
         return;
     }
 
-    //TODO: Implement runDeleteWorker()
     static void runDeleteWorker(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql3 = "DELETE FROM arbor_db.WORKER WHERE ssn = ?";
+            String sql2 = "DELETE FROM arbor_db.EMPLOYED WHERE worker = ?";
+            String sql1 = "DELETE FROM arbor_db.SENSOR WHERE maintainer_id = ?";
+
+            try (PreparedStatement preparedStatement1 = conn.prepareStatement(sql1)) {
+                // prompt user for the arg
+                System.out.print("Enter ssn (char(9)): ");
+                // store the ssn 
+                String ssn = scanner.next();
+
+                preparedStatement1.setString(1, ssn);
+
+                // run first sql statement
+                int rowsAffected1 = preparedStatement1.executeUpdate();
+                int rowsAffected2 = 0;
+                int rowsAffected3 = 0;
+
+                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
+                    // set ssn as arg
+                    preparedStatement2.setString(1, ssn);
+
+                    // run second sql statement
+                    rowsAffected2 = preparedStatement2.executeUpdate();
+
+                    try (PreparedStatement preparedStatement3 = conn.prepareStatement(sql3)) {
+                        // set ssn as arg
+                        preparedStatement3.setString(1, ssn);
+
+                        // run third sql statement
+                        rowsAffected3 = preparedStatement3.executeUpdate();
+                    }
+                }
+
+                // see if worked for all 3
+                if (rowsAffected1 > 0 && rowsAffected2 > 0 && rowsAffected3 > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after removing
         return;
     }
 
     //TODO: Implement runMoveSensor()
     static void runMoveSensor(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "UPDATE arbor_db.SENSOR " +
+            "SET X = ?, Y = ? " +
+            "WHERE sensor_id = ?";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter sensor_id (integer): ");
+                int id = scanner.nextInt();
+
+                // if user enters -1 as sensor_id, return to menu
+                if (id == -1) {
+                    return;
+                }
+
+                // if not -1, continue
+                preparedStatement.setInt(3, id);
+
+                // TODO: System.out.print("No Sensors to Redeploy");
+
+                System.out.print("Enter new X location (real): ");
+                preparedStatement.setFloat(1, scanner.nextFloat());
+
+                System.out.print("Enter new Y location (real): ");
+                preparedStatement.setFloat(2, scanner.nextFloat());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after updating
         return;
     }
 
     //TODO: Implement runRemoveWorkerFromState()
     static void runRemoveWorkerFromState(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "DELETE FROM arbor_db.EMPLOYED " +
+            "WHERE worker = ? " +
+            "AND state = ?";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Enter ssn (char(9)): ");
+                preparedStatement.setString(1, scanner.next());
+
+                System.out.print("Enter state abbreviation (char(2)): ");
+                preparedStatement.setString(2, scanner.next());
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                // TODO: REPLACEMENT WORKER
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
     //TODO: Implement runRemoveSensor()
     static void runRemoveSensor(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            String sql = "";
+
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // prompt user for the args
+                System.out.print("Would you like to remove ALL or SELECTED sensors from ArborDB?");
+
+                // see if it worked
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                // TODO: rest
+
+                if (rowsAffected > 0) {
+                    System.out.println("Success!");
+                } else {
+                    System.out.println("Failure.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
