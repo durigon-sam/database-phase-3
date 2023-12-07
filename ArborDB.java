@@ -362,53 +362,54 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql1 = "INSERT INTO arbor_db.WORKER (ssn, first, last, middle, rank) " +
-            "VALUES (?, ?, ?, ?, ?)";
+            // create variables for method inputs
+            String ssn = "";
+            String fName = "";
+            String lName = "";
+            String middle = "";
+            String rank = "";
+            String state = "";
 
-            String sql2 = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
-            "VALUES (?, ?)";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql1)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                // store ssn to be used later as well
-                String ssn = scanner.next();
-                preparedStatement.setString(1, ssn);
+                ssn = scanner.next();
 
                 System.out.print("Enter first name (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                fName = scanner.next();
 
                 System.out.print("Enter last name (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                lName = scanner.next();
 
                 System.out.print("Enter middle initial (char(1)): ");
-                preparedStatement.setString(4, scanner.next());
+                middle = scanner.next();
 
                 System.out.print("Enter rank (varchar(10)): ");
-                preparedStatement.setString(5, scanner.next());
+                rank = scanner.next();
+                
+                System.out.print("Enter state abbreviation (char(2)): ");
+                state = scanner.next();
 
-                // run first sql statement
-                int rowsAffected = preparedStatement.executeUpdate();
-                int rowsAffected2 = 0;
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call newWorker( ?,?,?,?,?,? ) }")) {
+                
+                callableStatement.setString(1, ssn);
+                callableStatement.setString(2, fName);
+                callableStatement.setString(3, lName);
+                callableStatement.setString(4, middle);
+                callableStatement.setString(5, rank);
+                callableStatement.setString(6, state);
 
-                    // get the state abbr from user
-                    System.out.print("Enter state abbreviation (char(2)): ");
-                    preparedStatement2.setString(1, scanner.next());
-
-                    // set ssn as second arg in statement
-                    preparedStatement2.setString(2, ssn);
-
-                    // run second sql statement
-                    rowsAffected2 = preparedStatement2.executeUpdate();
-                }
-
-                if (rowsAffected > 0 && rowsAffected2 > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
