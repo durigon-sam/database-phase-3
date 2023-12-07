@@ -21,13 +21,13 @@ public class ArborDB{
         }
 
         if (connected){
-                        System.out.println("Already connected to a database.");
-                        try {
-                            System.out.println("Press Enter to Continue");
-                            System.in.read();
-                        } catch (Exception e) {
+            System.out.println("Already connected to a database.");
+            try {
+                System.out.println("Press Enter to Continue");
+                System.in.read();
+            } catch (Exception e) {
 
-                        }
+            }
         } else connect();
 
         System.out.println("\n**********Welcome to the ArborDB menu**********. \n\n Please choose from the provided list of methods:");
@@ -194,7 +194,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runAddForest()
     static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
@@ -256,35 +255,50 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.TREE_SPECIES (genus, epithet, ideal_temperature, largest_height, raunkiaer_life_form) " +
-            "VALUES (?, ?, ?, ?, ?)";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            // create variables for method inputs
+            String genus = "";
+            String epithet = "";
+            Float temp = 0f;
+            Float height = 0f;
+            String form = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(1, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                epithet = scanner.next();
 
                 System.out.print("Enter ideal_temperature (real): ");
-                preparedStatement.setFloat(3, scanner.nextFloat());
+                temp = scanner.nextFloat();
 
                 System.out.print("Enter largest_height (real): ");
-                preparedStatement.setFloat(4, scanner.nextFloat());
+                height = scanner.nextFloat();
 
                 System.out.print("Enter raunkiaer_life_form (varchar(16)): ");
-                preparedStatement.setString(5, scanner.next());
-
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                form = scanner.next();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
             }
+
+            // configure the procedure call
+            try (CallableStatement preparedStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }")) {
+
+                preparedStatement.setString(1, genus);
+                preparedStatement.setString(2, epithet);
+                preparedStatement.setFloat(3, temp);
+                preparedStatement.setFloat(4, height);
+                preparedStatement.setString(5, form);
+
+                // call it
+                preparedStatement.execute();
+            }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
