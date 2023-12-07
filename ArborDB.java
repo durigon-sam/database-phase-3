@@ -32,8 +32,10 @@ public class ArborDB{
 
         System.out.println("\n**********Welcome to the ArborDB menu**********. \n\n Please choose from the provided list of methods:");
         while(true){
-            // System.out.println("\n1. Connect - Connect to Database\n2. addForest - adds a forest to the database\n3. addTreeSpecies\n4. addSpeciesToForest\n5. newWorker\n6. employWorkerToState\n7. placeSensor\n8. generateReport\n9. removeSpeciesFromForest\n10. deleteWorker\n11. moveSensor\n12. removeWorker\n13. removeSensor\n14. listSensors\n15. listMaintainedSensors\n16. locateTreeSpecies\n17. rankForestSensors\n18. habitableEnvironment\n19. topSensors\n20. threeDegrees\n21. Exit");
             printMenu();
+            if (!connected) {
+                System.out.println("Warning! Not connected to ArborDB, please try again by entering (1)\n");
+            }
             Scanner input = new Scanner(System.in);
             String func = input.next();
             switch (func) {
@@ -50,7 +52,7 @@ public class ArborDB{
                     break;
 
                 case "2":
-                    runAddForest();
+                    runAddForest(input);
                     break;
 
                 case "3":
@@ -98,7 +100,7 @@ public class ArborDB{
                     break;
 
                 case "14":
-                    runListSensors();
+                    runListSensors(input);
                     break;
 
                 case "15":
@@ -132,6 +134,14 @@ public class ArborDB{
                 default:
                     System.out.println("Please input a valid function.");
                     break;
+            }
+
+            try {
+                System.out.println();
+                System.out.println("Enter to continue...\n");
+                System.in.read();
+            } catch (Exception e) {
+
             }
         }
     }
@@ -185,13 +195,12 @@ public class ArborDB{
     }
 
     //TODO: Implement runAddForest()
-    static void runAddForest(){
+    static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
 
-        Scanner scanner = new Scanner(System.in);
 
         try {
             String sql = "INSERT INTO arbor_db.FOREST (forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax) " +
@@ -234,7 +243,6 @@ public class ArborDB{
             System.out.println("Error adding Forest: " + e.getMessage());
         } finally {
             // Close the scanner
-            scanner.close();
         }
 
         return;
@@ -296,7 +304,44 @@ public class ArborDB{
     }
 
     //TODO: Implement runListSensors()
-    static void runListSensors(){
+    static void runListSensors(Scanner scanner){
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+
+        try {
+
+            // Call the PostgreSQL function using CallableStatement
+            String sql = "SELECT * FROM listSensors(?)";
+            try (PreparedStatement callableStatement = conn.prepareCall(sql)) {
+                System.out.print("Enter forest_no: ");
+                callableStatement.setInt(1, scanner.nextInt());
+
+                System.out.println();
+                // Execute the query
+                boolean hasResults = callableStatement.execute();
+
+                // Process the results if any
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+                        int columnCount = metaData.getColumnCount(); // was used for an older version. 
+
+                        System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                        System.out.println();
+                        while (resultSet.next()) {
+ 
+                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                            System.out.println();
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error listing sensors in the forest: " + e.getMessage());
+        }
+
         return;
     }
 
@@ -343,15 +388,16 @@ public class ArborDB{
 
     public static void printMenu() {
         System.out.println("\nMenu:");
-        System.out.println("+----+------------------------+------------------------+-------------------------------+");
-        System.out.println("|  1 | Connect                |  6 | employWorkerToState | 11 | moveSensor             |");
-        System.out.println("|  2 | addForest              |  7 | placeSensor         | 12 | removeWorker           |");
-        System.out.println("|  3 | addTreeSpecies         |  8 | generateReport      | 13 | removeSensor           |");
-        System.out.println("|  4 | addSpeciesToForest     |  9 | removeSpecies       | 14 | listSensors            |");
-        System.out.println("|  5 | newWorker              | 10 | deleteWorker        | 15 | listMaintainedSensors  |");
-        System.out.println("| 16 | locateTreeSpecies      | 17 | rankForestSensors   | 18 | habitableEnvironment   |");
-        System.out.println("| 19 | topSensors             | 20 | threeDegrees        | 21 | Exit                   |");
-        System.out.println("+----+------------------------+------------------------+-------------------------------+");
+        System.out.println("+---+------------------------+------------------------------+----------------------------+");
+        System.out.println("| 1 | Connect                | 8  | generateReport          | 15 | listMaintainedSensors |");
+        System.out.println("| 2 | addForest              | 9  | removeSpeciesFromForest | 16 | locateTreeSpecies     |");
+        System.out.println("| 3 | addTreeSpecies         | 10 | deleteWorker            | 17 | rankForestSensors     |");
+        System.out.println("| 4 | addSpeciesToForest     | 11 | moveSensor              | 18 | habitableEnvironment  |");
+        System.out.println("| 5 | newWorker              | 12 | removeWorkerFromState   | 19 | topSensors            |");
+        System.out.println("| 6 | employWorkerToState    | 13 | removeSensor            | 20 | threeDegrees          |");
+        System.out.println("| 7 | placeSensor            | 14 | listSensors             | 21 | Exit                  |");
+        System.out.println("+---+------------------------+------------------------------+----------------------------+");
         System.out.println("Please enter your selection: \n");
     }
+
 }
