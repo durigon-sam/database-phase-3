@@ -56,47 +56,47 @@ public class ArborDB{
                     break;
 
                 case "3":
-                    runAddTreeSpecies();
+                    runAddTreeSpecies(input);
                     break;
 
                 case "4":
-                    runAddSpeciesToForest();
+                    runAddSpeciesToForest(input);
                     break;
 
                 case "5":
-                    runNewWorker();
+                    runNewWorker(input);
                     break;
 
                 case "6":
-                    runEmployWorkerToState();
+                    runEmployWorkerToState(input);
                     break;
 
                 case "7":
-                    runPlaceSensor();
+                    runPlaceSensor(input);
                     break;
 
                 case "8":
-                    runGenerateReport();
+                    runGenerateReport(input);
                     break;
 
                 case "9":
-                    runRemoveSpeciesFromForest();
+                    runRemoveSpeciesFromForest(input);
                     break;
 
                 case "10":
-                    runDeleteWorker();
+                    runDeleteWorker(input);
                     break;
 
                 case "11":
-                    runMoveSensor();
+                    runMoveSensor(input);
                     break;
 
                 case "12":
-                    runRemoveWorkerFromState();
+                    runRemoveWorkerFromState(input);
                     break;
 
                 case "13":
-                    runRemoveSensor();
+                    runRemoveSensor(input);
                     break;
 
                 case "14":
@@ -104,27 +104,27 @@ public class ArborDB{
                     break;
 
                 case "15":
-                    runListMaintainedSensors();
+                    runListMaintainedSensors(input);
                     break;
 
                 case "16":
-                    runLocateTreeSpecies();
+                    runLocateTreeSpecies(input);
                     break;
 
                 case "17":
-                    runRankForestSensors();
+                    runRankForestSensors(input);
                     break;
 
                 case "18":
-                    runHabitableEnvironment();
+                    runHabitableEnvironment(input);
                     break;
                     
                 case "19":
-                    runTopSensors();
+                    runTopSensors(input);
                     break;
 
                 case "20":
-                    runThreeDegrees();
+                    runThreeDegrees(input);
                     break;
 
                 case "21": // Exit
@@ -248,14 +248,12 @@ public class ArborDB{
         return;
     }
 
-    static void runAddTreeSpecies(){
+    static void runAddTreeSpecies(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "INSERT INTO arbor_db.TREE_SPECIES (genus, epithet, ideal_temperature, largest_height, raunkiaer_life_form) " +
@@ -289,22 +287,17 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
-    static void runAddSpeciesToForest(){
+    static void runAddSpeciesToForest(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "INSERT INTO arbor_db.FOUND_IN (forest_no, genus, epithet) " +
@@ -332,22 +325,17 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
-    static void runNewWorker(){
+    static void runNewWorker(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql1 = "INSERT INTO arbor_db.WORKER (ssn, first, last, middle, rank) " +
@@ -400,22 +388,17 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
-    static void runEmployWorkerToState(){
+    static void runEmployWorkerToState(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
@@ -440,23 +423,18 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
     //TODO: Implement runPlaceSensor()
-    static void runPlaceSensor(){
+    static void runPlaceSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "INSERT INTO arbor_db.SENSOR (sensor_id, last_charged, energy, last_read, x, y, maintainer_id) " +
@@ -495,23 +473,18 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
     //TODO: Implement runGenerateReport()
-    static void runGenerateReport(){
+    static void runGenerateReport(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             // first display list of all sensors
@@ -523,22 +496,17 @@ public class ArborDB{
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
     }
 
-    static void runRemoveSpeciesFromForest(){
+    static void runRemoveSpeciesFromForest(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "DELETE FROM arbor_db.FOUND_IN WHERE forest_no = ? AND genus = ? AND epithet = ?";
@@ -565,22 +533,17 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after removing
         return;
     }
 
-    static void runDeleteWorker(){
+    static void runDeleteWorker(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql3 = "DELETE FROM arbor_db.WORKER WHERE ssn = ?";
@@ -625,22 +588,17 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after removing
         return;
     }
 
-    static void runMoveSensor(){
+    static void runMoveSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "UPDATE arbor_db.SENSOR " +
@@ -697,23 +655,18 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after updating
         return;
     }
 
     //TODO: Implement runRemoveWorkerFromState()
-    static void runRemoveWorkerFromState(){
+    static void runRemoveWorkerFromState(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "DELETE FROM arbor_db.EMPLOYED " +
@@ -741,23 +694,18 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after removing
         return;
     }
 
     //TODO: Implement runRemoveSensor()
-    static void runRemoveSensor(){
+    static void runRemoveSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // create a new scanner for inputs
-        Scanner scanner = new Scanner(System.in);
         // try catch
         try {
             String sql = "";
@@ -779,9 +727,6 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-        } finally {
-            // close scanner
-            scanner.close();
         }
         // return after adding
         return;
@@ -837,32 +782,32 @@ public class ArborDB{
     }
 
     //TODO: Implement runListMaintainedSensors()
-    static void runListMaintainedSensors(){
+    static void runListMaintainedSensors(Scanner scanner){
         return;
     }
 
     //TODO: Implement runLocateTreeSpecies()
-    static void runLocateTreeSpecies(){
+    static void runLocateTreeSpecies(Scanner scanner){
         return;
     }
 
     //TODO: Implement runRankForestSensors()
-    static void runRankForestSensors(){
+    static void runRankForestSensors(Scanner scanner){
         return;
     }
 
     //TODO: Implement runHabitableEnvironment()
-    static void runHabitableEnvironment(){
+    static void runHabitableEnvironment(Scanner scanner){
         return;
     }
 
     //TODO: Implement runTopSensors()
-    static void runTopSensors(){
+    static void runTopSensors(Scanner scanner){
         return;
     }
 
     //TODO: Implement runThreeDegrees()
-    static void runThreeDegrees(){
+    static void runThreeDegrees(Scanner scanner){
         return;
     }
 
