@@ -406,10 +406,15 @@ public class ArborDB{
                 System.out.print("Enter maintainer id (char(9)): ");
                 preparedStatement.setString(7, scanner.next());
 
-                // TODO: calculate last_read and last_charged
-                // use current time from clock relation 
+                // TODO: calculate last_read and last_charge. Use current time from clock relation
+                String lastRead = "";
+                String lastCharged = "";
 
-                // see if it worked
+                String sql2 = "SELECT synthetic_time INTO time FROM arbor_db.CLOCK";
+
+                // run the above line to get current time
+
+                // run the entire insert statement
                 int rowsAffected = preparedStatement.executeUpdate();
 
                 if (rowsAffected > 0) {
@@ -430,6 +435,29 @@ public class ArborDB{
 
     //TODO: Implement runGenerateReport()
     static void runGenerateReport(){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // create a new scanner for inputs
+        Scanner scanner = new Scanner(System.in);
+        // try catch
+        try {
+            // first display list of all sensors
+            String sql = "SELECT * FROM arbor_db.SENSOR";
+
+            try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
+
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            // close scanner
+            scanner.close();
+        }
+        // return after adding
         return;
     }
 
@@ -535,7 +563,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runMoveSensor()
     static void runMoveSensor(){
         // check if connected first
         if (!connected) {
@@ -551,33 +578,51 @@ public class ArborDB{
             "WHERE sensor_id = ?";
 
             try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
-                System.out.print("Enter sensor_id (integer): ");
-                int id = scanner.nextInt();
+                // first check if there are any sensors to change
+                String sql2 = "SELECT * FROM arbor_db.SENSOR";
+                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
+                    // Execute the query
+                    boolean hasResults = preparedStatement2.execute();
+                    // check result
+                    if (hasResults) {
+                        try (ResultSet resultSet = preparedStatement2.getResultSet()) {
+                            if (resultSet.next()) {
+                                // there are sensors, do all the work
+                                // prompt user for the args
+                                System.out.print("Enter sensor_id (integer): ");
+                                int id = scanner.nextInt();
 
-                // if user enters -1 as sensor_id, return to menu
-                if (id == -1) {
-                    return;
-                }
+                                // if user enters -1 as sensor_id, return to menu
+                                if (id == -1) {
+                                    return;
+                                }
 
-                // if not -1, continue
-                preparedStatement.setInt(3, id);
+                                // if not -1, continue
+                                preparedStatement.setInt(3, id);
 
-                // TODO: System.out.print("No Sensors to Redeploy");
+                                System.out.print("Enter new X location (real): ");
+                                preparedStatement.setFloat(1, scanner.nextFloat());
 
-                System.out.print("Enter new X location (real): ");
-                preparedStatement.setFloat(1, scanner.nextFloat());
+                                System.out.print("Enter new Y location (real): ");
+                                preparedStatement.setFloat(2, scanner.nextFloat());
 
-                System.out.print("Enter new Y location (real): ");
-                preparedStatement.setFloat(2, scanner.nextFloat());
+                                // see if it worked
+                                int rowsAffected = preparedStatement.executeUpdate();
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
+                                if (rowsAffected > 0) {
+                                    System.out.println("Success!");
+                                } else {
+                                    System.out.println("Failure.");
+                                }
+                                return;
+                            }
+                            else {
+                                // no sensors no print and return
+                                System.out.print("No Sensors to Redeploy");
+                                return;
+                            }
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -613,7 +658,7 @@ public class ArborDB{
                 System.out.print("Enter state abbreviation (char(2)): ");
                 preparedStatement.setString(2, scanner.next());
 
-                // see if it worked
+                // run sql and delete from the table
                 int rowsAffected = preparedStatement.executeUpdate();
 
                 // TODO: REPLACEMENT WORKER
@@ -630,7 +675,7 @@ public class ArborDB{
             // close scanner
             scanner.close();
         }
-        // return after adding
+        // return after removing
         return;
     }
 
