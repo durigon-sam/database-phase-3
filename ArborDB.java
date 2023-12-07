@@ -287,16 +287,16 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement preparedStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }")) {
+            try (CallableStatement callableStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }")) {
 
-                preparedStatement.setString(1, genus);
-                preparedStatement.setString(2, epithet);
-                preparedStatement.setFloat(3, temp);
-                preparedStatement.setFloat(4, height);
-                preparedStatement.setString(5, form);
+                callableStatement.setString(1, genus);
+                callableStatement.setString(2, epithet);
+                callableStatement.setFloat(3, temp);
+                callableStatement.setFloat(4, height);
+                callableStatement.setString(5, form);
 
                 // call it
-                preparedStatement.execute();
+                callableStatement.execute();
             }
             
         } catch (SQLException e) {
@@ -314,28 +314,38 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.FOUND_IN (forest_no, genus, epithet) " +
-            "VALUES (?, ?, ?)";
+            // create variables for method inputs
+            int forestNo = 0;
+            String genus = "";
+            String epithet = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter forest_no (integer): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+                forestNo = scanner.nextInt();
 
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                epithet = scanner.next();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call addSpeciesToForest( ?,?,? ) }")) {
+                
+                callableStatement.setInt(1, forestNo);
+                callableStatement.setString(2, genus);
+                callableStatement.setString(3, epithet);
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
