@@ -182,6 +182,7 @@ public class ArborDB{
             } catch (Exception e) {
 
             }
+            conn.setAutoCommit(false);
             connected = true;
         } catch (SQLException err) {
             System.out.println("SQL Error");
@@ -302,20 +303,30 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, genus);
-                callableStatement.setString(2, epithet);
-                callableStatement.setFloat(3, temp);
-                callableStatement.setFloat(4, height);
-                callableStatement.setString(5, form);
+            CallableStatement callableStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }");
+            callableStatement.setString(1, genus);
+            callableStatement.setString(2, epithet);
+            callableStatement.setFloat(3, temp);
+            callableStatement.setFloat(4, height);
+            callableStatement.setString(5, form);
 
-                // call it
-                callableStatement.execute();
-            }
+            // call it
+            callableStatement.execute();
+            conn.commit();
             
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
@@ -1211,8 +1222,7 @@ public class ArborDB{
 
         try {
             // Handle concurrent actions
-            conn.setAutoCommit(false);
-            conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
@@ -1241,8 +1251,6 @@ public class ArborDB{
             System.out.println(err.toString());
             while (err != null) {
                 System.out.println("Message = " + err.getMessage());
-                System.out.println("SQLState = " + err.getSQLState());
-                System.out.println("SQL Code = " + err.getErrorCode());
                 err = err.getNextException();
             }
             System.out.println("Attempting rollback of transaction...");
