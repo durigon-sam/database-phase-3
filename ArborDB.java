@@ -363,18 +363,28 @@ public class ArborDB{
                 return;
             }
 
-            // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall(" { call addSpeciesToForest( ?,?,? ) }")) {
-                
-                callableStatement.setInt(1, forestNo);
-                callableStatement.setString(2, genus);
-                callableStatement.setString(3, epithet);
+            //handle concurrency
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                // call it
-                callableStatement.execute();
-            }
+            // configure the procedure call
+            CallableStatement callableStatement = conn.prepareCall(" { call addSpeciesToForest( ?,?,? ) }");
+            callableStatement.setInt(1, forestNo);
+            callableStatement.setString(2, genus);
+            callableStatement.setString(3, epithet);
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
