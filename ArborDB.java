@@ -557,27 +557,39 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "DELETE FROM arbor_db.FOUND_IN WHERE forest_no = ? AND genus = ? AND epithet = ?";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            // create variables for method inputs
+            int forest_no = 0;
+            String genus = "";
+            String epithet = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter forest_no (integer): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+                forest_no = scanner.nextInt();
 
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                epithet = scanner.next();
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call removeSpeciesFromForest( ?,?,? ) }")) {
+
+                callableStatement.setInt(1, forest_no);
+                callableStatement.setString(2, genus);
+                callableStatement.setString(3, epithet);
+                
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -594,45 +606,29 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql3 = "DELETE FROM arbor_db.WORKER WHERE ssn = ?";
-            String sql2 = "DELETE FROM arbor_db.EMPLOYED WHERE worker = ?";
-            String sql1 = "DELETE FROM arbor_db.SENSOR WHERE maintainer_id = ?";
-
-            try (PreparedStatement preparedStatement1 = conn.prepareStatement(sql1)) {
-                // prompt user for the arg
+            // create variables for method inputs
+            String ssn = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                // store the ssn 
-                String ssn = scanner.next();
+                ssn = scanner.next();
 
-                preparedStatement1.setString(1, ssn);
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // run first sql statement
-                int rowsAffected1 = preparedStatement1.executeUpdate();
-                int rowsAffected2 = 0;
-                int rowsAffected3 = 0;
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call deleteWorker( ? ) }")) {
 
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
-                    // set ssn as arg
-                    preparedStatement2.setString(1, ssn);
-
-                    // run second sql statement
-                    rowsAffected2 = preparedStatement2.executeUpdate();
-
-                    try (PreparedStatement preparedStatement3 = conn.prepareStatement(sql3)) {
-                        // set ssn as arg
-                        preparedStatement3.setString(1, ssn);
-
-                        // run third sql statement
-                        rowsAffected3 = preparedStatement3.executeUpdate();
-                    }
-                }
-
-                // see if worked for all 3
-                if (rowsAffected1 > 0 && rowsAffected2 > 0 && rowsAffected3 > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                callableStatement.setString(1, ssn);
+                
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());

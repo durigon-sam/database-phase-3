@@ -86,15 +86,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE PROCEDURE deleteWorker(d_ssn char(9))
 AS $$
 BEGIN
-  -- delete the worker from WORKER
-  DELETE FROM arbor_db.WORKER
-  WHERE SSN = d_ssn;
-  -- delete the worker from EMPLOYED
-  DELETE FROM arbor_db.EMPLOYED
-  WHERE worker = d_ssn;
   -- delete all sensors that were maintained by this worker
   DELETE FROM arbor_db.SENSOR
   WHERE maintainer_id = d_ssn;
+  -- delete the worker from EMPLOYED
+  DELETE FROM arbor_db.EMPLOYED
+  WHERE worker = d_ssn;
+  -- delete the worker from WORKER
+  DELETE FROM arbor_db.WORKER
+  WHERE SSN = d_ssn;
 end;
 $$ LANGUAGE plpgsql;
 
