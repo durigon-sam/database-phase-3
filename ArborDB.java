@@ -831,29 +831,7 @@ public class ArborDB{
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // try catch
-        try {
-            String sql = "";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
-                System.out.print("Would you like to remove ALL or SELECTED sensors from ArborDB?");
-
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                // TODO: rest
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-        // return after adding
+        
         return;
     }
 
@@ -864,7 +842,6 @@ public class ArborDB{
         }
 
         try {
-            
             String sql = "SELECT * FROM listSensors(?)";
             try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
                 clearScreen(20);
@@ -879,15 +856,14 @@ public class ArborDB{
                 // Process the results if any
                 if (hasResults) {
                     try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                        if (resultSet.next()) {
+                        if (!resultSet.wasNull()) {
 
                             ResultSetMetaData metaData = resultSet.getMetaData();
-                            int columnCount = metaData.getColumnCount(); // was used for an older version. 
     
                             System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
                             System.out.println();
+
                             while (resultSet.next()) {
-     
                                 System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                                 System.out.println();
                             }
@@ -905,8 +881,59 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runListMaintainedSensors()
     static void runListMaintainedSensors(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variable for method input
+            String ssn = "";
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter ssn (varchar(9)): ");
+                ssn = scanner.next();
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM listMaintainedSensors( ? )")) {
+
+                callableStatement.setString(1, ssn);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (!resultSet.wasNull()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR] Empty or invalid ssn.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
