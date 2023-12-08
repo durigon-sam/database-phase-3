@@ -194,56 +194,71 @@ public class ArborDB{
         return;
     }
 
+    // TODO: figure out how to generate a new forest_no
     static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
 
-
         try {
-            String sql = "INSERT INTO arbor_db.FOREST (forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                System.out.print("Enter forest_no (integer PRIMARY KEY): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+            // create variables for method inputs
+            String name = "";
+            int area = 0;
+            Float acidLevel = 0f;
+            Float xmin = 0f;
+            Float xmax = 0f;
+            Float ymin = 0f;
+            Float ymax = 0f;
 
+            try {
+                // prompt user for the args and assign                
                 System.out.print("Enter name (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                name = scanner.next();
 
                 System.out.print("Enter area (integer): ");
-                preparedStatement.setInt(3, scanner.nextInt());
+                area = scanner.nextInt();
 
                 System.out.print("Enter acid_level (real): ");
-                preparedStatement.setFloat(4, scanner.nextFloat());
+                acidLevel = scanner.nextFloat();
 
                 System.out.print("Enter MBR_XMin (real): ");
-                preparedStatement.setFloat(5, scanner.nextFloat());
+                xmin = scanner.nextFloat();
 
                 System.out.print("Enter MBR_XMax (real): ");
-                preparedStatement.setFloat(6, scanner.nextFloat());
+                xmax = scanner.nextFloat();
 
                 System.out.print("Enter MBR_YMin (real): ");
-                preparedStatement.setFloat(7, scanner.nextFloat());
+                ymin = scanner.nextFloat();
 
                 System.out.print("Enter MBR_YMax (real): ");
-                preparedStatement.setFloat(8, scanner.nextFloat());
+                ymax = scanner.nextFloat();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                int rowsAffected = preparedStatement.executeUpdate();
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call addForest( ?,?,?,?,?,?,? ) }")) {
 
-                if (rowsAffected > 0) {
-                    System.out.println("Forest added successfully!");
-                } else {
-                    System.out.println("Failed to add Forest. No rows affected.");
-                }
+                callableStatement.setString(1, name);
+                callableStatement.setInt(2, area);
+                callableStatement.setFloat(3, acidLevel);
+                callableStatement.setFloat(4, xmin);
+                callableStatement.setFloat(5, xmax);
+                callableStatement.setFloat(6, ymin);
+                callableStatement.setFloat(7, ymax);
+
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error adding Forest: " + e.getMessage());
-        } finally {
-            // Close the scanner
         }
-
+        // return after adding
         return;
     }
 
@@ -426,26 +441,34 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
-            "VALUES (?, ?)";
+            // create variables for method inputs
+            String state = "";
+            String ssn = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter state abbreviation (char(2)): ");
-                preparedStatement.setString(1, scanner.next());
+                state = scanner.next();
 
                 System.out.print("Enter ssn (char(9)): ");
-                preparedStatement.setString(2, scanner.next());
+                ssn = scanner.next();
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }          
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call employWorkerToState( ?,? ) }")) {
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
-            }
+                callableStatement.setString(1, state);
+                callableStatement.setString(2, ssn);
+
+                // call it
+                callableStatement.execute();
+            } 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
