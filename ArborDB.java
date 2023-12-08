@@ -21,13 +21,13 @@ public class ArborDB{
         }
 
         if (connected){
-                        System.out.println("Already connected to a database.");
-                        try {
-                            System.out.println("Press Enter to Continue");
-                            System.in.read();
-                        } catch (Exception e) {
+            System.out.println("Already connected to a database.");
+            try {
+                System.out.println("Press Enter to Continue");
+                System.in.read();
+            } catch (Exception e) {
 
-                        }
+            }
         } else connect();
 
         System.out.println("\n**********Welcome to the ArborDB menu**********. \n\n Please choose from the provided list of methods:");
@@ -194,57 +194,71 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runAddForest()
+    // TODO: figure out how to generate a new forest_no
     static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
 
-
         try {
-            String sql = "INSERT INTO arbor_db.FOREST (forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                System.out.print("Enter forest_no (integer PRIMARY KEY): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+            // create variables for method inputs
+            String name = "";
+            int area = 0;
+            Float acidLevel = 0f;
+            Float xmin = 0f;
+            Float xmax = 0f;
+            Float ymin = 0f;
+            Float ymax = 0f;
 
+            try {
+                // prompt user for the args and assign                
                 System.out.print("Enter name (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                name = scanner.next();
 
                 System.out.print("Enter area (integer): ");
-                preparedStatement.setInt(3, scanner.nextInt());
+                area = scanner.nextInt();
 
                 System.out.print("Enter acid_level (real): ");
-                preparedStatement.setFloat(4, scanner.nextFloat());
+                acidLevel = scanner.nextFloat();
 
                 System.out.print("Enter MBR_XMin (real): ");
-                preparedStatement.setFloat(5, scanner.nextFloat());
+                xmin = scanner.nextFloat();
 
                 System.out.print("Enter MBR_XMax (real): ");
-                preparedStatement.setFloat(6, scanner.nextFloat());
+                xmax = scanner.nextFloat();
 
                 System.out.print("Enter MBR_YMin (real): ");
-                preparedStatement.setFloat(7, scanner.nextFloat());
+                ymin = scanner.nextFloat();
 
                 System.out.print("Enter MBR_YMax (real): ");
-                preparedStatement.setFloat(8, scanner.nextFloat());
+                ymax = scanner.nextFloat();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                int rowsAffected = preparedStatement.executeUpdate();
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call addForest( ?,?,?,?,?,?,? ) }")) {
 
-                if (rowsAffected > 0) {
-                    System.out.println("Forest added successfully!");
-                } else {
-                    System.out.println("Failed to add Forest. No rows affected.");
-                }
+                callableStatement.setString(1, name);
+                callableStatement.setInt(2, area);
+                callableStatement.setFloat(3, acidLevel);
+                callableStatement.setFloat(4, xmin);
+                callableStatement.setFloat(5, xmax);
+                callableStatement.setFloat(6, ymin);
+                callableStatement.setFloat(7, ymax);
+
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error adding Forest: " + e.getMessage());
-        } finally {
-            // Close the scanner
         }
-
+        // return after adding
         return;
     }
 
@@ -256,35 +270,50 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.TREE_SPECIES (genus, epithet, ideal_temperature, largest_height, raunkiaer_life_form) " +
-            "VALUES (?, ?, ?, ?, ?)";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            // create variables for method inputs
+            String genus = "";
+            String epithet = "";
+            Float temp = 0f;
+            Float height = 0f;
+            String form = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(1, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                epithet = scanner.next();
 
                 System.out.print("Enter ideal_temperature (real): ");
-                preparedStatement.setFloat(3, scanner.nextFloat());
+                temp = scanner.nextFloat();
 
                 System.out.print("Enter largest_height (real): ");
-                preparedStatement.setFloat(4, scanner.nextFloat());
+                height = scanner.nextFloat();
 
                 System.out.print("Enter raunkiaer_life_form (varchar(16)): ");
-                preparedStatement.setString(5, scanner.next());
-
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                form = scanner.next();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
             }
+
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call addTreeSpecies( ?,?,?,?,? ) }")) {
+
+                callableStatement.setString(1, genus);
+                callableStatement.setString(2, epithet);
+                callableStatement.setFloat(3, temp);
+                callableStatement.setFloat(4, height);
+                callableStatement.setString(5, form);
+
+                // call it
+                callableStatement.execute();
+            }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -300,28 +329,38 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.FOUND_IN (forest_no, genus, epithet) " +
-            "VALUES (?, ?, ?)";
+            // create variables for method inputs
+            int forestNo = 0;
+            String genus = "";
+            String epithet = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter forest_no (integer): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+                forestNo = scanner.nextInt();
 
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                epithet = scanner.next();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call addSpeciesToForest( ?,?,? ) }")) {
+                
+                callableStatement.setInt(1, forestNo);
+                callableStatement.setString(2, genus);
+                callableStatement.setString(3, epithet);
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -338,53 +377,54 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql1 = "INSERT INTO arbor_db.WORKER (ssn, first, last, middle, rank) " +
-            "VALUES (?, ?, ?, ?, ?)";
+            // create variables for method inputs
+            String ssn = "";
+            String fName = "";
+            String lName = "";
+            String middle = "";
+            String rank = "";
+            String state = "";
 
-            String sql2 = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
-            "VALUES (?, ?)";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql1)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                // store ssn to be used later as well
-                String ssn = scanner.next();
-                preparedStatement.setString(1, ssn);
+                ssn = scanner.next();
 
                 System.out.print("Enter first name (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                fName = scanner.next();
 
                 System.out.print("Enter last name (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                lName = scanner.next();
 
                 System.out.print("Enter middle initial (char(1)): ");
-                preparedStatement.setString(4, scanner.next());
+                middle = scanner.next();
 
                 System.out.print("Enter rank (varchar(10)): ");
-                preparedStatement.setString(5, scanner.next());
+                rank = scanner.next();
+                
+                System.out.print("Enter state abbreviation (char(2)): ");
+                state = scanner.next();
 
-                // run first sql statement
-                int rowsAffected = preparedStatement.executeUpdate();
-                int rowsAffected2 = 0;
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call newWorker( ?,?,?,?,?,? ) }")) {
+                
+                callableStatement.setString(1, ssn);
+                callableStatement.setString(2, fName);
+                callableStatement.setString(3, lName);
+                callableStatement.setString(4, middle);
+                callableStatement.setString(5, rank);
+                callableStatement.setString(6, state);
 
-                    // get the state abbr from user
-                    System.out.print("Enter state abbreviation (char(2)): ");
-                    preparedStatement2.setString(1, scanner.next());
-
-                    // set ssn as second arg in statement
-                    preparedStatement2.setString(2, ssn);
-
-                    // run second sql statement
-                    rowsAffected2 = preparedStatement2.executeUpdate();
-                }
-
-                if (rowsAffected > 0 && rowsAffected2 > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -401,26 +441,34 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.EMPLOYED (state, worker) " +
-            "VALUES (?, ?)";
+            // create variables for method inputs
+            String state = "";
+            String ssn = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter state abbreviation (char(2)): ");
-                preparedStatement.setString(1, scanner.next());
+                state = scanner.next();
 
                 System.out.print("Enter ssn (char(9)): ");
-                preparedStatement.setString(2, scanner.next());
+                ssn = scanner.next();
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }          
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call employWorkerToState( ?,? ) }")) {
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
-            }
+                callableStatement.setString(1, state);
+                callableStatement.setString(2, ssn);
+
+                // call it
+                callableStatement.execute();
+            } 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -509,27 +557,39 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "DELETE FROM arbor_db.FOUND_IN WHERE forest_no = ? AND genus = ? AND epithet = ?";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            // create variables for method inputs
+            int forest_no = 0;
+            String genus = "";
+            String epithet = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter forest_no (integer): ");
-                preparedStatement.setInt(1, scanner.nextInt());
+                forest_no = scanner.nextInt();
 
                 System.out.print("Enter genus (varchar(30)): ");
-                preparedStatement.setString(2, scanner.next());
+                genus = scanner.next();
 
                 System.out.print("Enter epithet (varchar(30)): ");
-                preparedStatement.setString(3, scanner.next());
+                epithet = scanner.next();
 
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call removeSpeciesFromForest( ?,?,? ) }")) {
+
+                callableStatement.setInt(1, forest_no);
+                callableStatement.setString(2, genus);
+                callableStatement.setString(3, epithet);
+                
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -546,45 +606,29 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql3 = "DELETE FROM arbor_db.WORKER WHERE ssn = ?";
-            String sql2 = "DELETE FROM arbor_db.EMPLOYED WHERE worker = ?";
-            String sql1 = "DELETE FROM arbor_db.SENSOR WHERE maintainer_id = ?";
-
-            try (PreparedStatement preparedStatement1 = conn.prepareStatement(sql1)) {
-                // prompt user for the arg
+            // create variables for method inputs
+            String ssn = "";
+            
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                // store the ssn 
-                String ssn = scanner.next();
+                ssn = scanner.next();
 
-                preparedStatement1.setString(1, ssn);
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // run first sql statement
-                int rowsAffected1 = preparedStatement1.executeUpdate();
-                int rowsAffected2 = 0;
-                int rowsAffected3 = 0;
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call deleteWorker( ? ) }")) {
 
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
-                    // set ssn as arg
-                    preparedStatement2.setString(1, ssn);
-
-                    // run second sql statement
-                    rowsAffected2 = preparedStatement2.executeUpdate();
-
-                    try (PreparedStatement preparedStatement3 = conn.prepareStatement(sql3)) {
-                        // set ssn as arg
-                        preparedStatement3.setString(1, ssn);
-
-                        // run third sql statement
-                        rowsAffected3 = preparedStatement3.executeUpdate();
-                    }
-                }
-
-                // see if worked for all 3
-                if (rowsAffected1 > 0 && rowsAffected2 > 0 && rowsAffected3 > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                callableStatement.setString(1, ssn);
+                
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -601,48 +645,55 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "UPDATE arbor_db.SENSOR " +
-            "SET X = ?, Y = ? " +
-            "WHERE sensor_id = ?";
+            int sensorId = 0;
+            Float x = 0f;
+            Float y = 0f;
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // first check if there are any sensors to change
-                String sql2 = "SELECT * FROM arbor_db.SENSOR";
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
-                    // Execute the query
-                    boolean hasResults = preparedStatement2.execute();
+            // first check if there are any sensors to change
+            try (PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM arbor_db.SENSOR")) {
+                    // execute the query
+                    boolean hasResults = preparedStatement.execute();
                     // check result
                     if (hasResults) {
-                        try (ResultSet resultSet = preparedStatement2.getResultSet()) {
+                        try (ResultSet resultSet = preparedStatement.getResultSet()) {
                             if (resultSet.next()) {
-                                // there are sensors, do all the work
+                                // there are sensors, so do all the work
                                 // prompt user for the args
                                 System.out.print("Enter sensor_id (integer): ");
-                                int id = scanner.nextInt();
+                                sensorId = scanner.nextInt();
 
                                 // if user enters -1 as sensor_id, return to menu
-                                if (id == -1) {
+                                if (sensorId == -1) {
+                                    System.out.println("Exiting!");
                                     return;
                                 }
 
                                 // if not -1, continue
-                                preparedStatement.setInt(3, id);
-
-                                System.out.print("Enter new X location (real): ");
-                                preparedStatement.setFloat(1, scanner.nextFloat());
-
-                                System.out.print("Enter new Y location (real): ");
-                                preparedStatement.setFloat(2, scanner.nextFloat());
-
-                                // see if it worked
-                                int rowsAffected = preparedStatement.executeUpdate();
-
-                                if (rowsAffected > 0) {
-                                    System.out.println("Success!");
-                                } else {
-                                    System.out.println("Failure.");
+                                try {
+                                    // prompt user for the args and assign                    
+                                    System.out.print("Enter new x coord (real): ");
+                                    x = scanner.nextFloat();
+                    
+                                    System.out.print("Enter new y coord (real): ");
+                                    y = scanner.nextFloat();
+                    
+                                } catch (InputMismatchException e) {
+                                    System.out.println("Mismatched input type.");
+                                    return;
+                                } catch (NoSuchElementException e1){
+                                    System.err.println("No lines were read from user input, please try again.");
+                                    return;
                                 }
-                                return;
+                                // configure the procedure call
+                                try (CallableStatement callableStatement = conn.prepareCall("{ call moveSensor( ?,?,? ) }")) {
+
+                                    callableStatement.setInt(1, sensorId);
+                                    callableStatement.setFloat(2, x);
+                                    callableStatement.setFloat(3, y);
+
+                                    // call it
+                                    callableStatement.execute();
+                                }
                             }
                             else {
                                 // no sensors no print and return
@@ -651,7 +702,6 @@ public class ArborDB{
                             }
                         }
                     }
-                }
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -732,7 +782,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runListSensors()
     static void runListSensors(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
