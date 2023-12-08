@@ -434,21 +434,31 @@ public class ArborDB{
                 return;
             }
 
+            //handle concurrency
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall(" { call newWorker( ?,?,?,?,?,? ) }")) {
-                
-                callableStatement.setString(1, ssn);
-                callableStatement.setString(2, fName);
-                callableStatement.setString(3, lName);
-                callableStatement.setString(4, middle);
-                callableStatement.setString(5, rank);
-                callableStatement.setString(6, state);
+            CallableStatement callableStatement = conn.prepareCall(" { call newWorker( ?,?,?,?,?,? ) }");
+            callableStatement.setString(1, ssn);
+            callableStatement.setString(2, fName);
+            callableStatement.setString(3, lName);
+            callableStatement.setString(4, middle);
+            callableStatement.setString(5, rank);
+            callableStatement.setString(6, state);
 
-                // call it
-                callableStatement.execute();
-            }
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
