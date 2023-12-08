@@ -779,37 +779,43 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runRemoveWorkerFromState()
     static void runRemoveWorkerFromState(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
+        
         // try catch
         try {
-            String sql = "DELETE FROM arbor_db.EMPLOYED " +
-            "WHERE worker = ? " +
-            "AND state = ?";
+            // create variables for method inputs
+            String ssn = "";
+            String state = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                preparedStatement.setString(1, scanner.next());
+                ssn = scanner.next();
 
                 System.out.print("Enter state abbreviation (char(2)): ");
-                preparedStatement.setString(2, scanner.next());
+                state = scanner.next();
 
-                // run sql and delete from the table
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // TODO: REPLACEMENT WORKER
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call removeWorkerFromState( ?,? ) }")) {
+                
+                callableStatement.setString(1, ssn);
+                callableStatement.setString(2, state);
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
