@@ -490,18 +490,29 @@ public class ArborDB{
             } catch (NoSuchElementException e1){
                 System.err.println("No lines were read from user input, please try again.");
                 return;
-            }          
+            }
+
+            //handle concurrency
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call employWorkerToState( ?,? ) }")) {
+            CallableStatement callableStatement = conn.prepareCall("{ call employWorkerToState( ?,? ) }");
+            callableStatement.setString(1, state);
+            callableStatement.setString(2, ssn);
 
-                callableStatement.setString(1, state);
-                callableStatement.setString(2, ssn);
-
-                // call it
-                callableStatement.execute();
-            } 
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
