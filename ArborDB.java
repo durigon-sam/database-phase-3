@@ -645,48 +645,55 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "UPDATE arbor_db.SENSOR " +
-            "SET X = ?, Y = ? " +
-            "WHERE sensor_id = ?";
+            int sensorId = 0;
+            Float x = 0f;
+            Float y = 0f;
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // first check if there are any sensors to change
-                String sql2 = "SELECT * FROM arbor_db.SENSOR";
-                try (PreparedStatement preparedStatement2 = conn.prepareStatement(sql2)) {
-                    // Execute the query
-                    boolean hasResults = preparedStatement2.execute();
+            // first check if there are any sensors to change
+            try (PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM arbor_db.SENSOR")) {
+                    // execute the query
+                    boolean hasResults = preparedStatement.execute();
                     // check result
                     if (hasResults) {
-                        try (ResultSet resultSet = preparedStatement2.getResultSet()) {
+                        try (ResultSet resultSet = preparedStatement.getResultSet()) {
                             if (resultSet.next()) {
-                                // there are sensors, do all the work
+                                // there are sensors, so do all the work
                                 // prompt user for the args
                                 System.out.print("Enter sensor_id (integer): ");
-                                int id = scanner.nextInt();
+                                sensorId = scanner.nextInt();
 
                                 // if user enters -1 as sensor_id, return to menu
-                                if (id == -1) {
+                                if (sensorId == -1) {
+                                    System.out.println("Exiting!");
                                     return;
                                 }
 
                                 // if not -1, continue
-                                preparedStatement.setInt(3, id);
-
-                                System.out.print("Enter new X location (real): ");
-                                preparedStatement.setFloat(1, scanner.nextFloat());
-
-                                System.out.print("Enter new Y location (real): ");
-                                preparedStatement.setFloat(2, scanner.nextFloat());
-
-                                // see if it worked
-                                int rowsAffected = preparedStatement.executeUpdate();
-
-                                if (rowsAffected > 0) {
-                                    System.out.println("Success!");
-                                } else {
-                                    System.out.println("Failure.");
+                                try {
+                                    // prompt user for the args and assign                    
+                                    System.out.print("Enter new x coord (real): ");
+                                    x = scanner.nextFloat();
+                    
+                                    System.out.print("Enter new y coord (real): ");
+                                    y = scanner.nextFloat();
+                    
+                                } catch (InputMismatchException e) {
+                                    System.out.println("Mismatched input type.");
+                                    return;
+                                } catch (NoSuchElementException e1){
+                                    System.err.println("No lines were read from user input, please try again.");
+                                    return;
                                 }
-                                return;
+                                // configure the procedure call
+                                try (CallableStatement callableStatement = conn.prepareCall("{ call moveSensor( ?,?,? ) }")) {
+
+                                    callableStatement.setInt(1, sensorId);
+                                    callableStatement.setFloat(2, x);
+                                    callableStatement.setFloat(3, y);
+
+                                    // call it
+                                    callableStatement.execute();
+                                }
                             }
                             else {
                                 // no sensors no print and return
@@ -695,7 +702,6 @@ public class ArborDB{
                             }
                         }
                     }
-                }
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -776,7 +782,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runListSensors()
     static void runListSensors(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
