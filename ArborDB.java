@@ -939,6 +939,64 @@ public class ArborDB{
 
     //TODO: Implement runLocateTreeSpecies()
     static void runLocateTreeSpecies(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variable for method input
+            String alpha = "";
+            String beta = "";
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter alpha (varchar(30)): ");
+                alpha = scanner.next();
+
+                System.out.print("Enter beta (varchar(30)): ");
+                beta = scanner.next();
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM locateTreeSpecies( ?,? )")) {
+
+                callableStatement.setString(1, alpha);
+                callableStatement.setString(2, beta);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (!resultSet.wasNull()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            // FOREST table format
+                            System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7),metaData.getColumnName(8));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
+                                System.out.println();
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR]");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
