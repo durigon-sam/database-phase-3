@@ -194,7 +194,6 @@ public class ArborDB{
         return;
     }
 
-    // TODO: figure out how to generate a new forest_no
     static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
@@ -476,7 +475,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runPlaceSensor()
+    //TODO: works but a sensor needs to already exist in table in order for new sensorId to be created
     static void runPlaceSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -485,39 +484,44 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.SENSOR (sensor_id, last_charged, energy, last_read, x, y, maintainer_id) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            // create variables for method inputs
+            int energy = 0;
+            Float x = 0f;
+            Float y = 0f;
+            String id = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and assign                
                 System.out.print("Enter energy (integer): ");
-                preparedStatement.setInt(3, scanner.nextInt());
+                energy = scanner.nextInt();
 
                 System.out.print("Enter x of location of deployment (real): ");
-                preparedStatement.setFloat(5, scanner.nextFloat());
+                x = scanner.nextFloat();
 
                 System.out.print("Enter y of location of deployment (real): ");
-                preparedStatement.setFloat(6, scanner.nextFloat());
+                y = scanner.nextFloat();
 
                 System.out.print("Enter maintainer id (char(9)): ");
-                preparedStatement.setString(7, scanner.next());
+                id = scanner.next();
 
-                // TODO: calculate last_read and last_charge. Use current time from clock relation
-                String lastRead = "";
-                String lastCharged = "";
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                String sql2 = "SELECT synthetic_time INTO time FROM arbor_db.CLOCK";
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call placeSensor( ?,?,?,? ) }")) {
 
-                // run the above line to get current time
+                callableStatement.setInt(1, energy);
+                callableStatement.setFloat(2, x);
+                callableStatement.setFloat(3, y);
+                callableStatement.setString(4, id);
 
-                // run the entire insert statement
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -538,14 +542,79 @@ public class ArborDB{
             // first display list of all sensors
             String sql = "SELECT * FROM arbor_db.SENSOR";
 
-            try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // execute it
+                boolean hasResults = preparedStatement.execute();
+                // process results, if any
+                if (hasResults) {
+                    try (ResultSet resultSet = preparedStatement.getResultSet()) {
+                        if (resultSet.next()) {
 
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                        }
+                    }
+                    // continue after listing all sensors
+                    // create variables to make report for
+                    int sensorId = 0;
+                    java.sql.Timestamp reportTime;
+                    String date;
+                    Float temp = 0f;
+
+                    try {
+                        System.out.println("Enter an exisiting sensor_id, or -1 to exit: ");
+                        sensorId = scanner.nextInt();
+
+                        // check sensorId result
+                        if (sensorId == -1) {
+                            return;
+                        }
+
+                        // ask for other inputs
+                        System.out.print("Enter report time (yyyy-mm-dd hh:mm:ss): ");
+                        date = scanner.next();
+
+                        System.out.println("Date is: " + date);
+
+                        System.out.print("Enter temperature (real): ");
+                        temp = scanner.nextFloat();
+
+                    } catch (InputMismatchException e) {
+                        System.out.println("Mismatched input type.");
+                        return;
+                    } catch (NoSuchElementException e1){
+                        System.err.println("No lines were read from user input, please try again.");
+                        return;
+                    }
+
+                    // // configure the procedure call
+                    // try (CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }")) {
+
+                    //     callableStatement.setInt(1, sensorId);
+                    //     callableStatement.setTimestamp(2, reportTime);
+                    //     callableStatement.setFloat(3, temp);
+
+                    //     // call it
+                    //     callableStatement.execute();
+                    // }
+                } else {
+                    // TODO: no results to display, print and return
+                    System.out.println("No Sensors are currently deployed.");
+                    return;
+                }
             }
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-        // return after adding
+        // return after displaying
         return;
     }
 

@@ -5,10 +5,10 @@
 CREATE OR REPLACE PROCEDURE addForest(name varchar(30), area integer, acid_level real, MBR_XMin real, MBR_XMax real, MBR_YMin real, MBR_YMax real)
 AS $$
 DECLARE
-  forest_no INTEGER;
+  new_forest_no INTEGER;
 BEGIN
-  SELECT MAX(forest_no) + 1 INTO forest_no FROM arbor_db.FOREST;
-  INSERT INTO arbor_db.FOREST VALUES (forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax);
+  SELECT MAX(forest_no) + 1 INTO new_forest_no FROM arbor_db.FOREST;
+  INSERT INTO arbor_db.FOREST VALUES (new_forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax);
 end;
 $$ LANGUAGE plpgsql;
 
