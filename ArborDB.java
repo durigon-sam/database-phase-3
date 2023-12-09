@@ -2,6 +2,7 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.sql.*;
+import java.time.Instant;
 import java.util.Scanner;
 
 
@@ -194,7 +195,6 @@ public class ArborDB{
         return;
     }
 
-    // TODO: figure out how to generate a new forest_no
     static void runAddForest(Scanner scanner){
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
@@ -476,7 +476,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runPlaceSensor()
+    //TODO: works but a sensor needs to already exist in table in order for new sensorId to be created
     static void runPlaceSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -485,39 +485,44 @@ public class ArborDB{
         }
         // try catch
         try {
-            String sql = "INSERT INTO arbor_db.SENSOR (sensor_id, last_charged, energy, last_read, x, y, maintainer_id) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            // create variables for method inputs
+            int energy = 0;
+            Float x = 0f;
+            Float y = 0f;
+            String id = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and assign                
                 System.out.print("Enter energy (integer): ");
-                preparedStatement.setInt(3, scanner.nextInt());
+                energy = scanner.nextInt();
 
                 System.out.print("Enter x of location of deployment (real): ");
-                preparedStatement.setFloat(5, scanner.nextFloat());
+                x = scanner.nextFloat();
 
                 System.out.print("Enter y of location of deployment (real): ");
-                preparedStatement.setFloat(6, scanner.nextFloat());
+                y = scanner.nextFloat();
 
                 System.out.print("Enter maintainer id (char(9)): ");
-                preparedStatement.setString(7, scanner.next());
+                id = scanner.next();
 
-                // TODO: calculate last_read and last_charge. Use current time from clock relation
-                String lastRead = "";
-                String lastCharged = "";
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                String sql2 = "SELECT synthetic_time INTO time FROM arbor_db.CLOCK";
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("{ call placeSensor( ?,?,?,? ) }")) {
 
-                // run the above line to get current time
+                callableStatement.setInt(1, energy);
+                callableStatement.setFloat(2, x);
+                callableStatement.setFloat(3, y);
+                callableStatement.setString(4, id);
 
-                // run the entire insert statement
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -526,7 +531,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runGenerateReport()
+    //TODO: finish runGenerateReport()
     static void runGenerateReport(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -538,14 +543,80 @@ public class ArborDB{
             // first display list of all sensors
             String sql = "SELECT * FROM arbor_db.SENSOR";
 
-            try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                // execute it
+                boolean hasResults = preparedStatement.execute();
+                // process results, if any
+                if (hasResults) {
+                    try (ResultSet resultSet = preparedStatement.getResultSet()) {
+                        // if no sensors
+                        // if(resultSet.getRow() < 0) {
+                        //     System.out.println("No Sensors are currently deployed.");
+                        //     return;
+                        // }
 
+                        if (!resultSet.wasNull()) {
+
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                            System.out.println();
+                        }
+                    }
+                    // continue after listing all sensors
+                    // create variables to make report for
+                    int sensorId = 0;
+                    Time reportTime;
+                    Float temp = 0f;
+
+                    try {
+                        System.out.println("Enter an exisiting sensor_id, or -1 to exit: ");
+                        sensorId = scanner.nextInt();
+
+                        // check sensorId result
+                        if (sensorId == -1) {
+                            System.out.println("Quitting!");
+                            return;
+                        }
+
+                        // ask for other inputs
+                        System.out.print("Enter report time (yyyy-mm-dd hh:mm:ss): ");
+                        reportTime = Time.valueOf(scanner.next());
+
+                        System.out.print("Enter temperature (real): ");
+                        temp = scanner.nextFloat();
+
+                    } catch (InputMismatchException e) {
+                        System.out.println("Mismatched input type.");
+                        return;
+                    } catch (NoSuchElementException e1){
+                        System.err.println("No lines were read from user input, please try again.");
+                        return;
+                    }
+
+                    // configure the procedure call
+                    try (CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }")) {
+
+                        callableStatement.setInt(1, sensorId);
+                        callableStatement.setTime(2, reportTime);
+                        callableStatement.setFloat(3, temp);
+
+                        // call it
+                        callableStatement.execute();
+                    }
+                }
             }
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-        // return after adding
+        // return after displaying
         return;
     }
 
@@ -694,8 +765,7 @@ public class ArborDB{
                                     // call it
                                     callableStatement.execute();
                                 }
-                            }
-                            else {
+                            } else {
                                 // no sensors no print and return
                                 System.out.print("No Sensors to Redeploy");
                                 return;
@@ -710,37 +780,43 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runRemoveWorkerFromState()
     static void runRemoveWorkerFromState(Scanner scanner){
         // check if connected first
         if (!connected) {
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
+        
         // try catch
         try {
-            String sql = "DELETE FROM arbor_db.EMPLOYED " +
-            "WHERE worker = ? " +
-            "AND state = ?";
+            // create variables for method inputs
+            String ssn = "";
+            String state = "";
 
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
+            try {
+                // prompt user for the args and asign
                 System.out.print("Enter ssn (char(9)): ");
-                preparedStatement.setString(1, scanner.next());
+                ssn = scanner.next();
 
                 System.out.print("Enter state abbreviation (char(2)): ");
-                preparedStatement.setString(2, scanner.next());
+                state = scanner.next();
 
-                // run sql and delete from the table
-                int rowsAffected = preparedStatement.executeUpdate();
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
 
-                // TODO: REPLACEMENT WORKER
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall(" { call removeWorkerFromState( ?,? ) }")) {
+                
+                callableStatement.setString(1, ssn);
+                callableStatement.setString(2, state);
 
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
+                // call it
+                callableStatement.execute();
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -756,29 +832,7 @@ public class ArborDB{
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        // try catch
-        try {
-            String sql = "";
-
-            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                // prompt user for the args
-                System.out.print("Would you like to remove ALL or SELECTED sensors from ArborDB?");
-
-                // see if it worked
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                // TODO: rest
-
-                if (rowsAffected > 0) {
-                    System.out.println("Success!");
-                } else {
-                    System.out.println("Failure.");
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-        // return after adding
+        
         return;
     }
 
@@ -789,7 +843,6 @@ public class ArborDB{
         }
 
         try {
-            
             String sql = "SELECT * FROM listSensors(?)";
             try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
                 clearScreen(20);
@@ -804,15 +857,14 @@ public class ArborDB{
                 // Process the results if any
                 if (hasResults) {
                     try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                        if (resultSet.next()) {
+                        if (!resultSet.wasNull()) {
 
                             ResultSetMetaData metaData = resultSet.getMetaData();
-                            int columnCount = metaData.getColumnCount(); // was used for an older version. 
     
                             System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
                             System.out.println();
+
                             while (resultSet.next()) {
-     
                                 System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                                 System.out.println();
                             }
@@ -830,28 +882,295 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runListMaintainedSensors()
     static void runListMaintainedSensors(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variable for method input
+            String ssn = "";
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter ssn (varchar(9)): ");
+                ssn = scanner.next();
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM listMaintainedSensors( ? )")) {
+
+                callableStatement.setString(1, ssn);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (!resultSet.wasNull()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR] Empty or invalid ssn.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
-    //TODO: Implement runLocateTreeSpecies()
     static void runLocateTreeSpecies(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variable for method input
+            String alpha = "";
+            String beta = "";
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter alpha (varchar(30)): ");
+                alpha = scanner.next();
+
+                System.out.print("Enter beta (varchar(30)): ");
+                beta = scanner.next();
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM locateTreeSpecies( ?,? )")) {
+
+                callableStatement.setString(1, alpha);
+                callableStatement.setString(2, beta);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (!resultSet.wasNull()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            // FOREST table format
+                            System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7),metaData.getColumnName(8));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
+                                System.out.println();
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR]");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
-    //TODO: Implement runRankForestSensors()
+    //TODO: fix runRankForestSensors()
     static void runRankForestSensors(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM rankForestSensors()")) { // ???
+                
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (resultSet.next()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s%-9s%",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s%-9s%", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
+                                System.out.println();
+                            }
+                        } else {
+                            System.out.println("No Forests to Rank.");
+                            return;
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR]");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after calling
         return;
     }
 
-    //TODO: Implement runHabitableEnvironment()
+    //TODO: test runHabitableEnvironment()
     static void runHabitableEnvironment(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variables for method inputs
+            String genus = "";
+            String epithet = "";
+            int k = 0;
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter genus (varchar(30)): ");
+                genus = scanner.next();
+                System.out.print("Enter epithet (varchar(30)): ");
+                epithet = scanner.next();
+                System.out.print("Enter k (integer): ");
+                k = scanner.nextInt();
+
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM habitableEnvironment( ?,?,? )")) {
+
+                callableStatement.setString(1, genus);
+                callableStatement.setString(2, epithet);
+                callableStatement.setInt(3, k);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (resultSet.next()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-22s",metaData.getColumnName(1),metaData.getColumnName(2));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-22s", resultSet.getString(1), resultSet.getString(2));
+                                System.out.println();
+                            }
+                        } else {
+                            // no valid results
+                            System.out.println("No habitable environments were found.");
+                            return;
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR]");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
-    //TODO: Implement runTopSensors()
     static void runTopSensors(Scanner scanner){
+        // check if connected first
+        if (!connected) {
+            System.out.println("Not connected to ArborDB. Please establish a connection first.");
+            return;
+        }
+        // try catch
+        try {
+            // create variables for method inputs
+            int k = 0;
+            int x = 0;
+
+            try {
+                // prompt user for the args and assign
+                System.out.print("Enter k (integer): ");
+                k = scanner.nextInt();
+                System.out.print("Enter x (integer): ");
+                x = scanner.nextInt();
+
+                System.out.println();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+            // configure the procedure call
+            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM topSensors( ?,? )")) {
+
+                callableStatement.setInt(1, x);
+                callableStatement.setInt(2, k);
+                // run it
+                boolean hasResults = callableStatement.execute();
+
+                if (hasResults) {
+                    try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        if (!resultSet.wasNull()) {
+                            ResultSetMetaData metaData = resultSet.getMetaData();
+    
+                            System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                            System.out.println();
+
+                            while (resultSet.next()) {
+                                System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                System.out.println();
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("[ERROR]");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        // return after displaying
         return;
     }
 
