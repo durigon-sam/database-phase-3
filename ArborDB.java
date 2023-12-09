@@ -2,6 +2,7 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.sql.*;
+import java.time.Instant;
 import java.util.Scanner;
 
 
@@ -530,7 +531,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runGenerateReport()
+    //TODO: finish runGenerateReport()
     static void runGenerateReport(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -548,7 +549,13 @@ public class ArborDB{
                 // process results, if any
                 if (hasResults) {
                     try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                        if (resultSet.next()) {
+                        // if no sensors
+                        // if(resultSet.getRow() < 0) {
+                        //     System.out.println("No Sensors are currently deployed.");
+                        //     return;
+                        // }
+
+                        if (!resultSet.wasNull()) {
 
                             ResultSetMetaData metaData = resultSet.getMetaData();
     
@@ -559,13 +566,13 @@ public class ArborDB{
                                 System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                                 System.out.println();
                             }
+                            System.out.println();
                         }
                     }
                     // continue after listing all sensors
                     // create variables to make report for
                     int sensorId = 0;
-                    java.sql.Timestamp reportTime;
-                    String date;
+                    Time reportTime;
                     Float temp = 0f;
 
                     try {
@@ -574,14 +581,13 @@ public class ArborDB{
 
                         // check sensorId result
                         if (sensorId == -1) {
+                            System.out.println("Quitting!");
                             return;
                         }
 
                         // ask for other inputs
                         System.out.print("Enter report time (yyyy-mm-dd hh:mm:ss): ");
-                        date = scanner.next();
-
-                        System.out.println("Date is: " + date);
+                        reportTime = Time.valueOf(scanner.next());
 
                         System.out.print("Enter temperature (real): ");
                         temp = scanner.nextFloat();
@@ -594,20 +600,16 @@ public class ArborDB{
                         return;
                     }
 
-                    // // configure the procedure call
-                    // try (CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }")) {
+                    // configure the procedure call
+                    try (CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }")) {
 
-                    //     callableStatement.setInt(1, sensorId);
-                    //     callableStatement.setTimestamp(2, reportTime);
-                    //     callableStatement.setFloat(3, temp);
+                        callableStatement.setInt(1, sensorId);
+                        callableStatement.setTime(2, reportTime);
+                        callableStatement.setFloat(3, temp);
 
-                    //     // call it
-                    //     callableStatement.execute();
-                    // }
-                } else {
-                    // TODO: no results to display, print and return
-                    System.out.println("No Sensors are currently deployed.");
-                    return;
+                        // call it
+                        callableStatement.execute();
+                    }
                 }
             }
 
@@ -763,8 +765,7 @@ public class ArborDB{
                                     // call it
                                     callableStatement.execute();
                                 }
-                            }
-                            else {
+                            } else {
                                 // no sensors no print and return
                                 System.out.print("No Sensors to Redeploy");
                                 return;
@@ -999,7 +1000,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runRankForestSensors()
+    //TODO: fix runRankForestSensors()
     static void runRankForestSensors(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -1016,7 +1017,7 @@ public class ArborDB{
 
                 if (hasResults) {
                     try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
+                        if (resultSet.next()) {
                             ResultSetMetaData metaData = resultSet.getMetaData();
     
                             System.out.printf("%-12s%-22s%-9s%",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3));
@@ -1026,6 +1027,9 @@ public class ArborDB{
                                 System.out.printf("%-12s%-22s%-9s%", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
                                 System.out.println();
                             }
+                        } else {
+                            System.out.println("No Forests to Rank.");
+                            return;
                         }
                     }
                 } else {
@@ -1039,7 +1043,7 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runHabitableEnvironment()
+    //TODO: test runHabitableEnvironment()
     static void runHabitableEnvironment(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -1082,7 +1086,7 @@ public class ArborDB{
 
                 if (hasResults) {
                     try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
+                        if (resultSet.next()) {
                             ResultSetMetaData metaData = resultSet.getMetaData();
     
                             System.out.printf("%-12s%-22s",metaData.getColumnName(1),metaData.getColumnName(2));
@@ -1092,6 +1096,10 @@ public class ArborDB{
                                 System.out.printf("%-12s%-22s", resultSet.getString(1), resultSet.getString(2));
                                 System.out.println();
                             }
+                        } else {
+                            // no valid results
+                            System.out.println("No habitable environments were found.");
+                            return;
                         }
                     }
                 } else {
