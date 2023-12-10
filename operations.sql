@@ -5,12 +5,13 @@
 CREATE OR REPLACE PROCEDURE addForest(name varchar(30), area integer, acid_level real, MBR_XMin real, MBR_XMax real, MBR_YMin real, MBR_YMax real)
 AS $$
 DECLARE
-  new_forest_no INTEGER;
+  f_no INTEGER;
 BEGIN
-  SELECT MAX(forest_no) + 1 INTO new_forest_no FROM arbor_db.FOREST;
-  INSERT INTO arbor_db.FOREST VALUES (new_forest_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax);
+  SELECT MAX(forest_no) + 1 INTO f_no FROM arbor_db.FOREST F;
+  INSERT INTO arbor_db.FOREST VALUES (f_no, name, area, acid_level, MBR_XMin, MBR_XMax, MBR_YMin, MBR_YMax);
 end;
 $$ LANGUAGE plpgsql;
+
 
 -- 2. addTreeSpecies
 CREATE OR REPLACE PROCEDURE addTreeSpecies(genus varchar(30), epithet varchar(30), ideal_temperature real, largest_height real, raunkiaer_life_form varchar(16))
