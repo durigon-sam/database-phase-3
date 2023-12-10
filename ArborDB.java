@@ -147,7 +147,6 @@ public class ArborDB{
         }
     }
 
-    // TODO: check for all errors here
     static void connect(){
 
         Scanner input = new Scanner(System.in);
@@ -201,7 +200,7 @@ public class ArborDB{
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-
+        // i updated sql code with new_forest_id for this to work. forest_id was ambiguous.
         try {
             // create variables for method inputs
             String name = "";
@@ -613,7 +612,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: finish runGenerateReport()
     static void runGenerateReport(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -977,7 +975,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: Implement runRemoveSensor()
     static void runRemoveSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -989,6 +986,10 @@ public class ArborDB{
             String response;
             String confirm;
             int sensorId;
+
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
             // ask user for all or selected
             try {
@@ -1004,10 +1005,6 @@ public class ArborDB{
                     if (confirm.equals("yes")) {
                         // delete all rows from sensor and report, then return
                         System.out.println("Deleting all sensors and reports!");
-
-                        // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-                        // Statement st = conn.createStatement();
-                        // st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
                         String sql = "DELETE FROM arbor_db.SENSOR";
                         String sql2 = "DELETE FROM arbor_db.REPORT";
@@ -1344,7 +1341,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: fix runRankForestSensors()
     static void runRankForestSensors(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -1355,9 +1351,9 @@ public class ArborDB{
         try {
             // configure the procedure call
             //TODO: determine isolation level and constraints timing
-            //conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            Statement st = conn.createStatement();
-            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+            // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            // Statement st = conn.createStatement();
+            // st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
             CallableStatement callableStatement = conn.prepareCall("SELECT * FROM rankForestSensors()"); // ????? not working
                 
@@ -1404,7 +1400,6 @@ public class ArborDB{
         return;
     }
 
-    //TODO: test runHabitableEnvironment()
     static void runHabitableEnvironment(Scanner scanner){
         // check if connected first
         if (!connected) {
