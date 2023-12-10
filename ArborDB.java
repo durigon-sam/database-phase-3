@@ -1359,25 +1359,27 @@ public class ArborDB{
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM rankForestSensors()"); // ????? not working
+            CallableStatement callableStatement = conn.prepareCall("{call rankForestSensors()}"); // ????? not working
                 
             // run it
+            PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM FOREST_RANKS");
             boolean hasResults = callableStatement.execute();
-
-            if (hasResults) {
-                try (ResultSet resultSet = callableStatement.getResultSet()) {
+            boolean hasResultsReal = preparedStatement.execute();
+            
+            if (hasResultsReal) {
+                try (ResultSet resultSet = preparedStatement.getResultSet()) {
                     if (resultSet.next()) {
                         ResultSetMetaData metaData = resultSet.getMetaData();
 
-                        System.out.printf("%-12s%-22s%-9s%",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3));
+                        System.out.printf("%-10s%-22s%-14s%-8s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3), metaData.getColumnName(4));
                         System.out.println();
 
                         while (resultSet.next()) {
-                            System.out.printf("%-12s%-22s%-9s%", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
+                            System.out.printf("%-10s%-22s%-14s%-8s", resultSet.getString(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getInt(3));
                             System.out.println();
                         }
 
-                        callableStatement.close();
+                        preparedStatement.close();
                         conn.commit();
                     } else {
                         System.out.println("No Forests to Rank.");
