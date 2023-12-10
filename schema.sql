@@ -67,7 +67,7 @@ CREATE TABLE arbor_db.TREE_COMMON_NAME (
 CREATE DOMAIN Rank varchar(10)
     CHECK (VALUE IN ('Lead', 'Senior', 'Associate'));
 CREATE TABLE arbor_db.WORKER (
-    SSN char(9) PRIMARY KEY,
+    SSN char(9) PRIMARY KEY CHECK (length(SSN) = 9 AND SSN ~ '^[0-9]+$'),
     first varchar(30),
     last varchar(30),
     middle char(1),
