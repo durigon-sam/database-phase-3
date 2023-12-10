@@ -843,6 +843,12 @@ public class ArborDB{
             Float x = 0f;
             Float y = 0f;
 
+            // configure the procedure call
+            //TODO: determine isolation level and constraints timing
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+
             // first check if there are any sensors to change
             try (PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM arbor_db.SENSOR")) {
                 // execute the query
@@ -878,12 +884,6 @@ public class ArborDB{
                                 System.err.println("No lines were read from user input, please try again.");
                                 return;
                             }
-
-                            // configure the procedure call
-                            //TODO: determine isolation level and constraints timing
-                            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-                            Statement st = conn.createStatement();
-                            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
                             
                             CallableStatement callableStatement = conn.prepareCall("{ call moveSensor( ?,?,? ) }");
                             callableStatement.setInt(1, sensorId);
