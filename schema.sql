@@ -81,7 +81,7 @@ CREATE TABLE arbor_db.SENSOR (
     last_read timestamp,
     X real,
     Y real,
-    maintainer_id char(9) REFERENCES arbor_db.WORKER(SSN)
+    maintainer_id char(9) REFERENCES arbor_db.WORKER(SSN) ON DELETE CASCADE
 );
 
 CREATE TABLE arbor_db.REPORT (
@@ -118,7 +118,7 @@ CREATE TABLE arbor_db.FOUND_IN (
 
 CREATE TABLE arbor_db.EMPLOYED (
     state char(2) REFERENCES arbor_db.STATE(abbreviation),
-    worker char(9) REFERENCES arbor_db.WORKER(SSN),
+    worker char(9) REFERENCES arbor_db.WORKER(SSN) ON DELETE CASCADE,
     CONSTRAINT EMPLOYED_PK PRIMARY KEY (state, worker)
 );
 CREATE TABLE arbor_db.CLOCK (
