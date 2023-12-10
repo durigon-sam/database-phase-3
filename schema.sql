@@ -125,4 +125,4 @@ CREATE TABLE arbor_db.CLOCK (
     synthetic_time timestamp PRIMARY KEY
 );
 
-
+INSERT INTO arbor_db.CLOCK VALUES ('2023-09-30 00:00:00');
