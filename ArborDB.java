@@ -243,21 +243,32 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call addForest( ?,?,?,?,?,?,? ) }")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, name);
-                callableStatement.setInt(2, area);
-                callableStatement.setFloat(3, acidLevel);
-                callableStatement.setFloat(4, xmin);
-                callableStatement.setFloat(5, xmax);
-                callableStatement.setFloat(6, ymin);
-                callableStatement.setFloat(7, ymax);
+            CallableStatement callableStatement = conn.prepareCall("{ call addForest( ?,?,?,?,?,?,? ) }");
+            callableStatement.setString(1, name);
+            callableStatement.setInt(2, area);
+            callableStatement.setFloat(3, acidLevel);
+            callableStatement.setFloat(4, xmin);
+            callableStatement.setFloat(5, xmax);
+            callableStatement.setFloat(6, ymin);
+            callableStatement.setFloat(7, ymax);
 
-                // call it
-                callableStatement.execute();
-            }
+            // call it
+            callableStatement.execute();
+            conn.commit();
+
         } catch (SQLException e) {
-            System.out.println("Error adding Forest: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
@@ -556,18 +567,29 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call placeSensor( ?,?,?,? ) }")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setInt(1, energy);
-                callableStatement.setFloat(2, x);
-                callableStatement.setFloat(3, y);
-                callableStatement.setString(4, id);
+            CallableStatement callableStatement = conn.prepareCall("{ call placeSensor( ?,?,?,? ) }");
+            callableStatement.setInt(1, energy);
+            callableStatement.setFloat(2, x);
+            callableStatement.setFloat(3, y);
+            callableStatement.setString(4, id);
 
-                // call it
-                callableStatement.execute();
-            }
+            // call it
+            callableStatement.execute();
+            conn.commit();
+        
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after adding
         return;
@@ -643,20 +665,31 @@ public class ArborDB{
                     }
 
                     // configure the procedure call
-                    try (CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }")) {
+                    conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                    Statement st = conn.createStatement();
+                    st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                        callableStatement.setInt(1, sensorId);
-                        callableStatement.setTime(2, reportTime);
-                        callableStatement.setFloat(3, temp);
+                    CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }");
+                    callableStatement.setInt(1, sensorId);
+                    callableStatement.setTime(2, reportTime);
+                    callableStatement.setFloat(3, temp);
 
-                        // call it
-                        callableStatement.execute();
-                    }
+                    // call it
+                    callableStatement.execute();
+                    conn.commit();
+                    
                 }
             }
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after displaying
         return;
@@ -695,17 +728,28 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call removeSpeciesFromForest( ?,?,? ) }")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setInt(1, forest_no);
-                callableStatement.setString(2, genus);
-                callableStatement.setString(3, epithet);
-                
-                // call it
-                callableStatement.execute();
-            }
+            CallableStatement callableStatement = conn.prepareCall("{ call removeSpeciesFromForest( ?,?,? ) }");
+            callableStatement.setInt(1, forest_no);
+            callableStatement.setString(2, genus);
+            callableStatement.setString(3, epithet);
+            
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after removing
         return;
@@ -736,15 +780,26 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("{ call deleteWorker( ? ) }")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, ssn);
-                
-                // call it
-                callableStatement.execute();
-            }
+            CallableStatement callableStatement = conn.prepareCall("{ call deleteWorker( ? ) }");
+            callableStatement.setString(1, ssn);
+            
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after removing
         return;
@@ -797,16 +852,21 @@ public class ArborDB{
                                     System.err.println("No lines were read from user input, please try again.");
                                     return;
                                 }
+
                                 // configure the procedure call
-                                try (CallableStatement callableStatement = conn.prepareCall("{ call moveSensor( ?,?,? ) }")) {
+                                conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                                Statement st = conn.createStatement();
+                                st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+                                
+                                CallableStatement callableStatement = conn.prepareCall("{ call moveSensor( ?,?,? ) }");
+                                callableStatement.setInt(1, sensorId);
+                                callableStatement.setFloat(2, x);
+                                callableStatement.setFloat(3, y);
 
-                                    callableStatement.setInt(1, sensorId);
-                                    callableStatement.setFloat(2, x);
-                                    callableStatement.setFloat(3, y);
-
-                                    // call it
-                                    callableStatement.execute();
-                                }
+                                // call it
+                                callableStatement.execute();
+                                conn.commit();
+                                
                             } else {
                                 // no sensors no print and return
                                 System.out.print("No Sensors to Redeploy");
@@ -817,6 +877,13 @@ public class ArborDB{
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after updating
         return;
@@ -852,16 +919,27 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall(" { call removeWorkerFromState( ?,? ) }")) {
-                
-                callableStatement.setString(1, ssn);
-                callableStatement.setString(2, state);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                // call it
-                callableStatement.execute();
-            }
+            CallableStatement callableStatement = conn.prepareCall(" { call removeWorkerFromState( ?,? ) }");
+            callableStatement.setString(1, ssn);
+            callableStatement.setString(2, state);
+
+            // call it
+            callableStatement.execute();
+            conn.commit();
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after removing
         return;
@@ -885,40 +963,56 @@ public class ArborDB{
         }
 
         try {
+            // configure the procedure call
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+
             String sql = "SELECT * FROM listSensors(?)";
-            try (PreparedStatement preparedStatement = conn.prepareCall(sql)) {
-                clearScreen(20);
-                System.out.println("Retrieve list of sensors");
-                System.out.print("Enter forest_no: ");
-                preparedStatement.setInt(1, scanner.nextInt());
+            PreparedStatement preparedStatement = conn.prepareCall(sql);
+        
+            clearScreen(20);
+            System.out.println("Retrieve list of sensors");
+            System.out.print("Enter forest_no: ");
+            preparedStatement.setInt(1, scanner.nextInt());
 
-                System.out.println();
-                // Execute the query
-                boolean hasResults = preparedStatement.execute();
+            System.out.println();
+            // Execute the query
+            boolean hasResults = preparedStatement.execute();
 
-                // Process the results if any
-                if (hasResults) {
-                    try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
+            // Process the results if any
+            if (hasResults) {
+                try (ResultSet resultSet = preparedStatement.getResultSet()) {
+                    if (!resultSet.wasNull()) {
 
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                             System.out.println();
+                        }
 
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
-                                System.out.println();
-                            }
-                        }
-                        else {
-                            System.out.println("[ERROR] Empty or invalid forest_no.");
-                        }
+                        preparedStatement.close();
+                        conn.commit();
+                    }
+                    else {
+                        System.out.println("[ERROR] Empty or invalid forest_no.");
                     }
                 }
             }
+            
         } catch (SQLException e) {
-            System.out.println("Error listing sensors in the forest: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
 
         return;
@@ -949,32 +1043,46 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM listMaintainedSensors( ? )")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, ssn);
-                // run it
-                boolean hasResults = callableStatement.execute();
+            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM listMaintainedSensors( ? )");
+            callableStatement.setString(1, ssn);
 
-                if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+            // run it
+            boolean hasResults = callableStatement.execute();
+
+            if (hasResults) {
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    if (!resultSet.wasNull()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                             System.out.println();
-
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-22s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
-                                System.out.println();
-                            }
                         }
+
+                        callableStatement.close();
+                        conn.commit();
                     }
-                } else {
-                    System.out.println("[ERROR] Empty or invalid ssn.");
                 }
+            } else {
+                System.out.println("[ERROR] Empty or invalid ssn.");
             }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after displaying
         return;
@@ -1008,35 +1116,50 @@ public class ArborDB{
                 System.err.println("No lines were read from user input, please try again.");
                 return;
             }
+
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM locateTreeSpecies( ?,? )")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, alpha);
-                callableStatement.setString(2, beta);
-                // run it
-                boolean hasResults = callableStatement.execute();
+            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM locateTreeSpecies( ?,? )");
+            callableStatement.setString(1, alpha);
+            callableStatement.setString(2, beta);
 
-                if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            // FOREST table format
-                            System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7),metaData.getColumnName(8));
+            // run it
+            boolean hasResults = callableStatement.execute();
+
+            if (hasResults) {
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    if (!resultSet.wasNull()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        // FOREST table format
+                        System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7),metaData.getColumnName(8));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
                             System.out.println();
-
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-12s%-9s%-22s%-6s%-6s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
-                                System.out.println();
-                            }
                         }
+
+                        callableStatement.close();
+                        conn.commit();
                     }
-                } else {
-                    System.out.println("[ERROR]");
                 }
+            } else {
+                System.out.println("[ERROR]");
             }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after displaying
         return;
@@ -1052,34 +1175,48 @@ public class ArborDB{
         // try catch
         try {
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM rankForestSensors()")) { // ???
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+
+            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM rankForestSensors()"); // ????? not working
                 
-                // run it
-                boolean hasResults = callableStatement.execute();
+            // run it
+            boolean hasResults = callableStatement.execute();
 
-                if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (resultSet.next()) {
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            System.out.printf("%-12s%-22s%-9s%",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3));
+            if (hasResults) {
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    if (resultSet.next()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        System.out.printf("%-12s%-22s%-9s%",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-22s%-9s%", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
                             System.out.println();
-
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-22s%-9s%", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
-                                System.out.println();
-                            }
-                        } else {
-                            System.out.println("No Forests to Rank.");
-                            return;
                         }
+
+                        callableStatement.close();
+                        conn.commit();
+                    } else {
+                        System.out.println("No Forests to Rank.");
+                        return;
                     }
-                } else {
-                    System.out.println("[ERROR]");
                 }
+            } else {
+                System.out.println("[ERROR]");
             }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after calling
         return;
@@ -1118,38 +1255,52 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM habitableEnvironment( ?,?,? )")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setString(1, genus);
-                callableStatement.setString(2, epithet);
-                callableStatement.setInt(3, k);
-                // run it
-                boolean hasResults = callableStatement.execute();
+            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM habitableEnvironment( ?,?,? )");
+            callableStatement.setString(1, genus);
+            callableStatement.setString(2, epithet);
+            callableStatement.setInt(3, k);
 
-                if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (resultSet.next()) {
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            System.out.printf("%-12s%-22s",metaData.getColumnName(1),metaData.getColumnName(2));
+            // run it
+            boolean hasResults = callableStatement.execute();
+
+            if (hasResults) {
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    if (resultSet.next()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        System.out.printf("%-12s%-22s",metaData.getColumnName(1),metaData.getColumnName(2));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-22s", resultSet.getString(1), resultSet.getString(2));
                             System.out.println();
-
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-22s", resultSet.getString(1), resultSet.getString(2));
-                                System.out.println();
-                            }
-                        } else {
-                            // no valid results
-                            System.out.println("No habitable environments were found.");
-                            return;
                         }
+
+                        callableStatement.close();
+                        conn.commit();
+                    } else {
+                        // no valid results
+                        System.out.println("No habitable environments were found.");
+                        return;
                     }
-                } else {
-                    System.out.println("[ERROR]");
                 }
+            } else {
+                System.out.println("[ERROR]");
             }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after displaying
         return;
@@ -1184,39 +1335,51 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            try (CallableStatement callableStatement = conn.prepareCall("SELECT * FROM topSensors( ?,? )")) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
-                callableStatement.setInt(1, x);
-                callableStatement.setInt(2, k);
-                // run it
-                boolean hasResults = callableStatement.execute();
+            CallableStatement callableStatement = conn.prepareCall("SELECT * FROM topSensors( ?,? )");
+            callableStatement.setInt(1, x);
+            callableStatement.setInt(2, k);
 
-                if (hasResults) {
-                    try (ResultSet resultSet = callableStatement.getResultSet()) {
-                        if (!resultSet.wasNull()) {
-                            ResultSetMetaData metaData = resultSet.getMetaData();
-    
-                            System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+            // run it
+            boolean hasResults = callableStatement.execute();
+            
+            if (hasResults) {
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    if (!resultSet.wasNull()) {
+                        ResultSetMetaData metaData = resultSet.getMetaData();
+
+                        System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                        System.out.println();
+
+                        while (resultSet.next()) {
+                            System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
                             System.out.println();
-
-                            while (resultSet.next()) {
-                                System.out.printf("%-12s%-12s%-18s%-12s%-12s%-4s%-4s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
-                                System.out.println();
-                            }
                         }
+                        callableStatement.close();
+                        conn.commit();
                     }
-                } else {
-                    System.out.println("[ERROR]");
                 }
+            } else {
+                System.out.println("[ERROR]");
             }
+            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
         }
         // return after displaying
         return;
     }
 
-    //DONE: Implement runThreeDegrees()
     static void runThreeDegrees(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -1261,7 +1424,10 @@ public class ArborDB{
             CallableStatement preparedStatement = conn.prepareCall("SELECT * FROM threeDegrees( ?, ? )");
             preparedStatement.setInt(1, firstForest);
             preparedStatement.setInt(2, secondForest);
+
+            // run it
             boolean hasResults = preparedStatement.execute();
+
             if (hasResults){
                 ResultSet resultSet = preparedStatement.getResultSet();
                 resultSet.next();
