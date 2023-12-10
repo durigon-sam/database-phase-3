@@ -632,11 +632,16 @@ public class ArborDB{
                 if (hasResults) {
                     try (ResultSet resultSet = preparedStatement.getResultSet()) {
                         // if no sensors
-                        // if(resultSet.getRow() < 0) {
-                        //     System.out.println("No Sensors are currently deployed.");
-                        //     return;
-                        // }
+                        
+                        // String count = "SELECT COUNT(*) FROM arbor_db.SENSOR";
+                        // PreparedStatement preparedStatement2 = conn.prepareStatement(count);
+                        // boolean result = preparedStatement2.execute();
 
+                        // if(result) {
+                        //     Reresult.getResultSet;
+                        //     System.out.println("No Sensors are currently deployed.");
+                        //     //return;
+                        // }
                         if (!resultSet.wasNull()) {
 
                             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -986,7 +991,145 @@ public class ArborDB{
             System.out.println("Not connected to ArborDB. Please establish a connection first.");
             return;
         }
-        
+        try {
+            // variables
+            String response;
+            String confirm;
+            int sensorId;
+
+            // ask user for all or selected
+            try {
+                System.out.print("Would you like to remove <all> or <selected> sensors? ");
+                response = scanner.next();
+
+                // handle the response
+                if (response.equals("all")) {
+                    System.out.print("Are you sure? Enter <yes> or <no>: ");
+                    confirm = scanner.next();
+
+                    // handle confirmation
+                    if (confirm.equals("yes")) {
+                        // delete all rows from sensor and report, then return
+                        System.out.println("Deleting all sensors and reports!");
+
+                        // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                        // Statement st = conn.createStatement();
+                        // st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+
+                        String sql = "DELETE FROM arbor_db.SENSOR";
+                        String sql2 = "DELETE FROM arbor_db.REPORT";
+
+                        PreparedStatement preparedStatement = conn.prepareStatement(sql);
+                        PreparedStatement preparedStatement2 = conn.prepareStatement(sql2);
+
+                        // execute
+                        preparedStatement2.execute();
+                        preparedStatement.execute();
+                        conn.commit();
+
+                        // done
+                        return;
+
+                    } else if (confirm.equals("no")) {
+                        System.out.println("No sensors were removed. Exiting...");
+                        return;
+                    } else {
+                        System.out.println("You did not enter <yes> or <no>. Exiting...");
+                        return;
+                    }
+
+                } else if (response.equals("selected")) {
+                    System.out.println(); // blank line
+
+                    // display one sensor at a time
+                    String sql = "SELECT * FROM arbor_db.SENSOR"; // get all sensors from table
+                    PreparedStatement preparedStatement = conn.prepareStatement(sql); // prepare the get all
+                    boolean hasResults = preparedStatement.execute(); // run the get all
+
+                    // if there are results
+                    if (hasResults) {
+                        try (ResultSet resultSet = preparedStatement.getResultSet()) { // get the resultSet
+                            if (!resultSet.wasNull()) { // if resultSet is not empty
+                                ResultSetMetaData metaData = resultSet.getMetaData(); // get its metadata
+                                // print the table header
+                                System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s",metaData.getColumnName(1),metaData.getColumnName(2),metaData.getColumnName(3),metaData.getColumnName(4),metaData.getColumnName(5),metaData.getColumnName(6),metaData.getColumnName(7));
+                                System.out.println();
+
+                                // loop through the rows one at a time
+                                while (resultSet.next()) {
+                                    // first check if current row is last row
+                                    if (resultSet.isLast()) {
+                                        System.out.println("The next row is the last... Exiting!");
+                                        return;
+                                    }
+
+                                    // show next row
+                                    System.out.printf("%-12s%-22s%-9s%-22s%-4s%-4s%-12s", resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+                                    System.out.println();
+
+                                    String curId = resultSet.getString(1); // store current sensorID
+
+                                    // prompt for deletion of current sensor
+                                    System.out.print("Enter the current sensor_id to delete it: ");
+                                    sensorId = scanner.nextInt();
+                                    String stringVersion = String.valueOf(sensorId); // turn the int to a string
+
+                                    // evaluate this value
+                                    if (sensorId != -1 && sensorId != 0 && (!stringVersion.equals(curId))) {
+                                        System.out.println("Please enter either 0, -1, or the current sensorId: ");
+                                        sensorId = scanner.nextInt(); // reassign to new 
+                                        stringVersion = String.valueOf(sensorId); // turn the int to a string
+                                    }
+
+                                    // act based on input
+                                    if (sensorId == 0) {
+                                        // do nothing, move to next row
+                                        System.out.println("Not Deleting!");
+                                        System.out.println();
+                                    } else if (sensorId == -1) {
+                                        // return to menu
+                                        System.out.println("Exiting!");
+                                        return;
+                                    } else if (stringVersion.equals(curId)) {
+                                        // delete current sensor
+                                        System.out.println("Deleting!");
+                                        System.out.println();
+
+                                        CallableStatement callableStatement = conn.prepareCall("{ call removeSensor( ? ) }");
+                                        callableStatement.setInt(1, sensorId);
+                                        
+                                        // call it
+                                        callableStatement.execute();
+                                        conn.commit();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("You did not enter <all> or <selected>. Exiting...");
+                    return;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Mismatched input type.");
+                return;
+            } catch (NoSuchElementException e1){
+                System.err.println("No lines were read from user input, please try again.");
+                return;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("Attempting rollback of transaction...");
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                //TODO: maybe do something if rollback fails? unsure
+                System.out.println("Rollback Failed. Error: " + err2.toString());
+            }
+            System.out.println("Rollback successful!\n");
+        }
+
+        // return after done
         return;
     }
 
