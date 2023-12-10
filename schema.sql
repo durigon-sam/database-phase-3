@@ -68,9 +68,9 @@ CREATE DOMAIN Rank varchar(10)
     CHECK (VALUE IN ('Lead', 'Senior', 'Associate'));
 CREATE TABLE arbor_db.WORKER (
     SSN char(9) PRIMARY KEY CHECK (length(SSN) = 9 AND SSN ~ '^[0-9]+$'),
-    first varchar(30),
-    last varchar(30),
-    middle char(1),
+    first varchar(30) CHECK (first ~ '^[A-Za-z]+$'),
+    last varchar(30) CHECK (last ~ '^[A-Za-z]+$'),
+    middle char(1) CHECK (length(middle) = 1 AND middle ~ '^[A-Za-z]+$'),
     rank Rank
 );
 -- SENSOR (sensor id, last charged, energy, last read, X, Y, maintainer id)
