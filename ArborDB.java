@@ -626,22 +626,20 @@ public class ArborDB{
             String sql = "SELECT * FROM arbor_db.SENSOR";
 
             try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+                // configure the procedure call
+                // TODO: determine isolation level and constraints timing
+                conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                Statement st = conn.createStatement();
+                st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+
                 // execute it
                 boolean hasResults = preparedStatement.execute();
                 // process results, if any
                 if (hasResults) {
                     try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                        // if no sensors
-                        
-                        // String count = "SELECT COUNT(*) FROM arbor_db.SENSOR";
-                        // PreparedStatement preparedStatement2 = conn.prepareStatement(count);
-                        // boolean result = preparedStatement2.execute();
 
-                        // if(result) {
-                        //     Reresult.getResultSet;
-                        //     System.out.println("No Sensors are currently deployed.");
-                        //     //return;
-                        // }
+                        // if sensors exist
                         if (!resultSet.wasNull()) {
 
                             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -659,12 +657,13 @@ public class ArborDB{
                     // continue after listing all sensors
                     // create variables to make report for
                     int sensorId = 0;
-                    Time reportTime;
+                    Timestamp reportTime;
                     Float temp = 0f;
 
                     try {
-                        System.out.println("Enter an exisiting sensor_id, or -1 to exit: ");
+                        System.out.print("Enter an existing sensor_id, or -1 to exit: ");
                         sensorId = scanner.nextInt();
+                        scanner.nextLine();
 
                         // check sensorId result
                         if (sensorId == -1) {
@@ -673,8 +672,8 @@ public class ArborDB{
                         }
 
                         // ask for other inputs
-                        System.out.print("Enter report time (yyyy-mm-dd hh:mm:ss): ");
-                        reportTime = Time.valueOf(scanner.next());
+                        System.out.print("Enter report time (yyyy-mm-dd hh:mm:ss.sss): ");
+                        reportTime = Timestamp.valueOf(scanner.nextLine());
 
                         System.out.print("Enter temperature (real): ");
                         temp = scanner.nextFloat();
@@ -687,15 +686,9 @@ public class ArborDB{
                         return;
                     }
 
-                    // configure the procedure call
-                    //TODO: determine isolation level and constraints timing
-                    conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-                    Statement st = conn.createStatement();
-                    st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
-
                     CallableStatement callableStatement = conn.prepareCall("{ call generateReport( ?,?,? ) }");
                     callableStatement.setInt(1, sensorId);
-                    callableStatement.setTime(2, reportTime);
+                    callableStatement.setTimestamp(2, reportTime);
                     callableStatement.setFloat(3, temp);
 
                     // call it
@@ -1362,7 +1355,7 @@ public class ArborDB{
         try {
             // configure the procedure call
             //TODO: determine isolation level and constraints timing
-            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            //conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
@@ -1635,7 +1628,7 @@ public class ArborDB{
                 if (hops != null){
                     System.out.println("The following hops were found!\n" + hops);
                 }else{
-                    System.out.format("No hops were found from %d to %d", firstForest, secondForest);
+                    System.out.println("No path was found.");
                 }
             }
             
