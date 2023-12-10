@@ -55,7 +55,7 @@ DECLARE
   last_read TIMESTAMP;
   time TIMESTAMP;
 BEGIN
-  SELECT MAX(sensor_id) + 1 INTO new_sensor_id FROM arbor_db.SENSOR;
+  SELECT COALESCE(MAX(sensor_id) + 1, 1) INTO new_sensor_id FROM arbor_db.SENSOR;
 
   SELECT synthetic_time INTO time FROM arbor_db.CLOCK;
   last_charged := time;
