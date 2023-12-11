@@ -2,7 +2,6 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.sql.*;
-import java.time.Instant;
 import java.util.Scanner;
 
 
@@ -192,6 +191,7 @@ public class ArborDB{
                 err = err.getNextException();
             }
         }
+        input.close();
         return;
     }
 
@@ -242,7 +242,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -266,12 +265,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
@@ -316,7 +313,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -338,12 +334,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
@@ -380,7 +374,6 @@ public class ArborDB{
             }
 
             //handle concurrency
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -399,12 +392,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
@@ -454,7 +445,6 @@ public class ArborDB{
             }
 
             //handle concurrency
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -476,12 +466,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
@@ -515,7 +503,6 @@ public class ArborDB{
             }
 
             //handle concurrency
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -533,17 +520,15 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
 
-    //TODO: works but a sensor needs to already exist in table in order for new sensorId to be created
+    // works but a sensor needs to already exist in table in order for new sensorId to be created
     static void runPlaceSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -581,7 +566,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -602,12 +586,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after adding
         return;
     }
@@ -626,7 +608,6 @@ public class ArborDB{
             try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
                 // configure the procedure call
-                // TODO: determine isolation level and constraints timing
                 conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
                 Statement st = conn.createStatement();
                 st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -702,12 +683,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after displaying
         return;
     }
@@ -745,7 +724,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -765,12 +743,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after removing
         return;
     }
@@ -800,7 +776,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -818,17 +793,14 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after removing
         return;
     }
 
-    //TODO: optimize this, too many try catches i think
     static void runMoveSensor(Scanner scanner){
         // check if connected first
         if (!connected) {
@@ -842,7 +814,6 @@ public class ArborDB{
             Float y = 0f;
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -906,12 +877,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after updating
         return;
     }
@@ -946,7 +915,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -965,12 +933,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after removing
         return;
     }
@@ -1113,12 +1079,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-
         // return after done
         return;
     }
@@ -1131,7 +1095,6 @@ public class ArborDB{
 
         try {
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -1178,13 +1141,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
-
         return;
     }
 
@@ -1213,7 +1173,6 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -1251,12 +1210,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after displaying
         return;
     }
@@ -1291,7 +1248,6 @@ public class ArborDB{
             }
 
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -1331,12 +1287,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after displaying
         return;
     }
@@ -1350,16 +1304,15 @@ public class ArborDB{
         // try catch
         try {
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
-            // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            // Statement st = conn.createStatement();
-            // st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            Statement st = conn.createStatement();
+            st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
             CallableStatement callableStatement = conn.prepareCall("{call rankForestSensors()}"); // ????? not working
                 
             // run it
             PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM FOREST_RANKS");
-            boolean hasResults = callableStatement.execute();
+            callableStatement.execute();
             boolean hasResultsReal = preparedStatement.execute();
             
             if (hasResultsReal) {
@@ -1392,12 +1345,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after calling
         return;
     }
@@ -1434,7 +1385,6 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -1478,12 +1428,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after displaying
         return;
     }
@@ -1517,7 +1465,6 @@ public class ArborDB{
                 return;
             }
             // configure the procedure call
-            //TODO: determine isolation level and constraints timing
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
@@ -1555,12 +1502,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         // return after displaying
         return;
     }
@@ -1601,8 +1546,7 @@ public class ArborDB{
 
         try {
             // Handle concurrent actions
-            //TODO: determine isolation level and constraints timing
-            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             Statement st = conn.createStatement();
             st.executeUpdate("SET CONSTRAINTS ALL DEFERRED;");
 
@@ -1640,12 +1584,10 @@ public class ArborDB{
             try {
                 conn.rollback();
             } catch (SQLException err2) {
-                //TODO: maybe do something if rollback fails? unsure
                 System.out.println("Rollback Failed. Error: " + err2.toString());
             }
             System.out.println("Rollback successful!\n");
         }
-        // TODO: catch SQLTimeoutException
         return;
     }
 
