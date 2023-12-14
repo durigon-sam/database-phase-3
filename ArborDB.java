@@ -191,7 +191,7 @@ public class ArborDB{
                 err = err.getNextException();
             }
         }
-        input.close();
+
         return;
     }
 
